@@ -1,0 +1,9 @@
+.vscode/
+venv/
+*.swp
+O.*/
+lib/
+bin/
+dbd/
+db/
+include/
