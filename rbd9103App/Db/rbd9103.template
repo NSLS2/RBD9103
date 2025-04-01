@@ -245,21 +245,24 @@ record(ai, "$(P)$(R)Current_RBV"){
     field(DTYP, "asynInt32")
     field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_CURRENT")
     field(SCAN, "I/O Intr")
+    field(EGU, "nA")
     field(VAL, "0")
 }
 
-record(mbbi, "$(P)$(R)Units_RBV"){
-    field(DTYP, "asynInt32")
+record(stringin, "$(P)$(R)Units_RBV"){
+    field(DTYP, "asynOctet")
     field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_UNITS")
-    field(ZRVL, "0")
-    field(ZRST, "nA")
-    field(ONVL, "1")
-    field(ONST, "uA")
-    field(TWVL, "2")
-    field(TWST, "mA")
-    field(THVL, "3")
-    field(THST, "A")
+    field(VAL, "nA")
     field(SCAN, "I/O Intr")
+}
+
+# Helper record that writes the units into the EGU field of the current record
+record(scalcout, "$(P)$(R)UnitsOut"){
+    field(DTYP, "Soft Channel")
+    field(OUT, "$(P)$(R)Current_RBV.EGU PP NMS")
+    field(INPA, "$(P)$(R)Units_RBV")
+    field(CALC, "A")
+    field(OOPT, "On Change")
 }
 
 

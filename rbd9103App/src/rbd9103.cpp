@@ -226,15 +226,9 @@ void RBD9103::parseSampling(string rawSampling){
         current = current.substr(1, current.length());
     }
     setDoubleParam(this->RBD9103_Current, atof(current.c_str()));
-    
+
     string units = rawSampling.substr(rawSampling.find(",", 3) + 1, rawSampling.length());
-    if(units == "nA") {
-        setIntegerParam(this->RBD9103_Units, RBD_UNT_NA);
-    } else if(units == "uA") {
-        setIntegerParam(this->RBD9103_Units, RBD_UNT_UA);
-    } else if(units == "mA") {
-        setIntegerParam(this->RBD9103_Units, RBD_UNT_MA);
-    }
+    setStringParam(this->RBD9103_Units, units.c_str());
 
     callParamCallbacks();
 }
@@ -338,7 +332,7 @@ asynStatus RBD9103::writeInt32(asynUser* pasynUser, epicsInt32 value){
         if(range == 0){
             ERR("Cannot set offset null when range is set to AutoR");
             status = asynError;
-        } else if (value == 1) {}
+        } else if (value == 1) {
             snprintf(cmd, sizeof(cmd), "&N", value);
         } else {
             // Per manual, to clear offset null state, just re-apply range setting.
