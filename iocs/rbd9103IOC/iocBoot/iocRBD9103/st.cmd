@@ -11,7 +11,7 @@ epicsEnvSet("ENGINEER", "J. Wlodek")
 epicsEnvSet("SERIAL_PORT", "RBD_TTY")
 epicsEnvSet("PORT", "RBD")
 epicsEnvSet("P", "DEV:")
-epicsEnvSet("R", "SB1:")
+epicsEnvSet("R", "RBD9103:")
 epicsEnvSet("PREFIX", "$(P)$(R)")
 
 ## Register all support components
@@ -36,6 +36,8 @@ RBD9103Config("RBD", "$(SERIAL_PORT)")
 
 ## Load record instances
 dbLoadTemplate("$(RBD_9103)/db/rbd9103.substitutions")
+
+dbLoadTemplate("$(DEVIOCSTATS)/db/iocAdminSoft.db", "IOC=$(PREFIX)")
 
 iocInit()
 

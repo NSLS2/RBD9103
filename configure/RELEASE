@@ -30,6 +30,7 @@
 
 # EPICS_BASE should appear last so earlier modules can override stuff:
 ASYN=/usr/lib/epics
+DEVIOCSTATS=/usr/lib/epics
 EPICS_BASE = /usr/lib/epics
 
 # Set RULES here if you want to use build rules from somewhere

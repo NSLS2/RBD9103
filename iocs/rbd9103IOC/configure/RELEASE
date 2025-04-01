@@ -29,6 +29,7 @@
 #SNCSEQ = $(MODULES)/seq-ver
 RBD_9103=$(TOP)/../..
 ASYN=/usr/lib/epics
+DEVIOCSTATS=/usr/lib/epics
 
 # EPICS_BASE should appear last so earlier modules can override stuff:
 EPICS_BASE = /usr/lib/epics
