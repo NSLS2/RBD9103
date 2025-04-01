@@ -228,6 +228,18 @@ record(ai, "$(P)$(R)SamplingRate_RBV"){
     field(VAL, "0")
 }
 
+record(mbbi, "$(P)$(R)InRange_RBV"){
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_IN_RANGE")
+    field(ZRVL, "0")
+    field(ZRST, "OK")
+    field(ONVL, "1")
+    field(ONST, "Under")
+    field(TWVL, "2")
+    field(TWST, "Over")
+    field(SCAN, "I/O Intr")
+}
+
 
 record(ai, "$(P)$(R)Current_RBV"){
     field(DTYP, "asynInt32")

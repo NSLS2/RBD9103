@@ -159,9 +159,9 @@ asynStatus RBD9103::getDeviceStatus(){
         } else if(statusLine.rfind("G, AutoGrounding", 0) == 0) {
             const char* autoGrounding = splitRespOnDelim(statusLine, "=").c_str();
             if(strcmp(autoGrounding, "DISABLED") == 0){
-                setIntegerParam(this->RBD9103_AutoGrounding, RBD_OFF);
+                setIntegerParam(this->RBD9103_InputGnd, RBD_OFF);
             } else if(strcmp(autoGrounding, "ENABLED") == 0){
-                setIntegerParam(this->RBD9103_AutoGrounding, RBD_ON);
+                setIntegerParam(this->RBD9103_InputGnd, RBD_ON);
             }
         } else if(statusLine.rfind("Q, State", 0) == 0) {
             string state = splitRespOnDelim(statusLine, "=");
@@ -248,32 +248,6 @@ void RBD9103::sampleOnce(){
         return;
     }
     parseSampling(sampling);
-
-
-    // if(ret[2] == '='){
-    //     setIntegerParam(this->RBD9103_Stable, 1);
-    // } else {
-    //     setIntegerParam(this->RBD9103_Stable, 0);
-    // }
-
-    // char* sampleToken=strtok(ret, ",");
-    // char* range=strtok(NULL, ",");
-    // char* current=strtok(NULL, ",");
-    // char* units=strtok(NULL, ",");
-
-    // // Get the units
-    // if (strcmp(units, "nA") == 0) {
-    //     setIntegerParam(this->RBD9103_Units, RBD_UNT_NA);
-    // } else if (strcmp(units, "uA") == 0) {
-    //     setIntegerParam(this->RBD9103_Units, RBD_UNT_UA * 1000);
-    // } else if (strcmp(units, "mA") == 0) {
-    //     setIntegerParam(this->RBD9103_Units, RBD_UNT_MA * 1000000);
-    // }
-
-    // if(current[0] == '+'){
-    //     current++;
-    // }
-    // setDoubleParam(this->RBD9103_Current, atof(current));
 }
 
 
@@ -352,12 +326,24 @@ asynStatus RBD9103::writeInt32(asynUser* pasynUser, epicsInt32 value){
         snprintf(cmd, sizeof(cmd), "&B%d", value);
     } else if (function == RBD9103_Range) {
         snprintf(cmd, sizeof(cmd), "&R%d", value);
+        // Setting range disables offset null
+        setIntegerParam(RBD9103_OffsetNull, 0);
     } else if (function == RBD9103_Filter) {
         snprintf(cmd, sizeof(cmd), "&F%03d", value * 2);
-    } else if (function == RBD9103_AutoCal) {
-        snprintf(cmd, sizeof(cmd), "&CA%d", value);
     } else if (function == RBD9103_InputGnd) {
         snprintf(cmd, sizeof(cmd), "&G%d", value);
+    } else if (function == RBD9103_OffsetNull) {
+        int range;
+        getIntegerParam(RBD9103_Range, &range);
+        if(range == 0){
+            ERR("Cannot set offset null when range is set to AutoR");
+            status = asynError;
+        } else if (value == 1) {}
+            snprintf(cmd, sizeof(cmd), "&N", value);
+        } else {
+            // Per manual, to clear offset null state, just re-apply range setting.
+            snprintf(cmd, sizeof(cmd), "&R%d", range);
+        }
     }
 
     if(strlen(cmd) > 0){
