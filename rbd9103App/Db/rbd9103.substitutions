@@ -1,7 +1,7 @@
 file "$(ASYN)/db/asynRecord.db"
 {
 pattern { P,       R,          PORT,    ADDR, OMAX, IMAX }
-        { "DEV:", "RBD9103:", "RBD_TTY", "0", "0", "0" }
+        { "DEV:", "RBD9103:AsynIO", "RBD_TTY", "0", "0", "0" }
 }
 
 file "$(RBD_9103)/db/rbd9103.template"

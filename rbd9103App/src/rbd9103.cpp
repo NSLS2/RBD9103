@@ -17,6 +17,8 @@
 
 #include "rbd9103.h"
 
+using namespace std;
+
 // Error message formatters
 #define ERR(msg)                                                                                 \
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "ERROR | %s::%s: %s\n", driverName, functionName, \
@@ -66,75 +68,251 @@ static void samplingThreadC(void* pPvt){
 }
 
 
-asynStatus RBD9103::writeReadCmd(const char* cmd, char* ret, size_t maxChars, double timeout){
+string RBD9103::writeReadCmd(const char* cmd){
 
     size_t nwrite, nread;
     asynStatus status;
     int eomReason;
+    char ret[64];
 
     const char *functionName="writeReadCmd";
     pasynOctetSyncIO->flush(this->pasynUserSerialPort);
     status = pasynOctetSyncIO->writeRead(this->pasynUserSerialPort, cmd,
-                                      strlen(cmd), ret, maxChars, timeout,
+                                      strlen(cmd), ret, 64, TIMEOUT,
                                       &nwrite, &nread, &eomReason);
 
-    return status;
+    if (status != asynSuccess) {
+        ERR("Failed to write command!");
+        return string("");
+    }
+    return string(ret);
+}
+
+// Firmware Version: 02.09
+// Build: 1-25-18
+// R, Range=AutoR
+// I, sample Interval=0500 mSec
+// L, Chart Log Update Interval=0200 mSec
+// B, BIAS=OFF
+// F, Filter=032
+// V, FormatLen=5
+// CA, Autocal=OFF
+// G, AutoGrounding=DISABLED
+// Q, State=MEASURE
+// P, PID=NEW_DEVICE
+
+
+string RBD9103::splitRespOnDelim(string resp, const char* delim){
+    return resp.substr(resp.find(delim) + strlen(delim), resp.length());
+}
+
+
+
+asynStatus RBD9103::getDeviceStatus(){
+    const char* functionName = "getDeviceStatus";
+    pasynOctetSyncIO->flush(this->pasynUserSerialPort);
+    size_t nwrite, nread;
+    int eomReason;
+    asynStatus status = pasynOctetSyncIO->write(this->pasynUserSerialPort, "&Q", 2, 1, &nwrite);
+
+    printf("Reading device status:\n");
+    bool readDeviceID = false;
+    char ret[64];
+    while(!readDeviceID){
+        status = pasynOctetSyncIO->read(this->pasynUserSerialPort, ret, sizeof(ret), 1, &nread, &eomReason);
+        string statusLine = string(ret);
+        printf("%s\n", statusLine.c_str());
+        if(status != asynSuccess){
+            ERR("Failed to read device status!");
+            return status;
+        } else if(statusLine.rfind("Firmware", 0) == 0) {
+            const char* fwVersion = splitRespOnDelim(statusLine, ": ").c_str();
+            setStringParam(this->RBD9103_FwVersion, fwVersion);
+        } else if(statusLine.rfind("Build", 0) == 0) {
+            const char* buildDate = splitRespOnDelim(statusLine, ": ").c_str();
+            setStringParam(this->RBD9103_BuildDate, buildDate);
+        } else if(statusLine.rfind("R, Range", 0) == 0) {
+            string range = splitRespOnDelim(statusLine, "=");
+            setIntegerParam(this->RBD9103_Range, getRangeSettingFromStr(range));
+        } else if(statusLine.rfind("I, sample Interval", 0) == 0) {
+            const char* sampleInterval = splitRespOnDelim(statusLine, "=").c_str();
+            setIntegerParam(this->RBD9103_SamplingRate, atoi(sampleInterval));
+        } else if(statusLine.rfind("L, Chart Log Update Interval", 0) == 0) {
+            const char*chartLogUpdateInterval = splitRespOnDelim(statusLine, "=").c_str();
+            //setStringParam(this->RBD9103_ChartLogUpdateInterval, );
+        } else if(statusLine.rfind("B, BIAS", 0) == 0) {
+            const char* bias = splitRespOnDelim(statusLine, "=").c_str();
+            if(strcmp(bias, "ON") == 0){
+                setIntegerParam(this->RBD9103_Bias, RBD_ON);
+            } else if(strcmp(bias, "OFF") == 0){
+                setIntegerParam(this->RBD9103_Bias, RBD_OFF);
+            }
+        } else if(statusLine.rfind("F, Filter", 0) == 0) {
+            const char* filter = splitRespOnDelim(statusLine, "=").c_str();
+            setIntegerParam(this->RBD9103_Filter, atoi(filter) / 2);
+        } else if(statusLine.rfind("V, FormatLen", 0) == 0) {
+            const char* formatLen = splitRespOnDelim(statusLine, "=").c_str();
+            this->setIntegerParam(this->RBD9103_NumDigits, atoi(formatLen));
+        } else if(statusLine.rfind("CA, Autocal", 0) == 0) {
+            const char* autoCal = splitRespOnDelim(statusLine, "=").c_str();
+            //setStringParam(this->RBD9103_AutoCal, );
+        } else if(statusLine.rfind("G, AutoGrounding", 0) == 0) {
+            const char* autoGrounding = splitRespOnDelim(statusLine, "=").c_str();
+            if(strcmp(autoGrounding, "DISABLED") == 0){
+                setIntegerParam(this->RBD9103_AutoGrounding, RBD_OFF);
+            } else if(strcmp(autoGrounding, "ENABLED") == 0){
+                setIntegerParam(this->RBD9103_AutoGrounding, RBD_ON);
+            }
+        } else if(statusLine.rfind("Q, State", 0) == 0) {
+            string state = splitRespOnDelim(statusLine, "=");
+            if(state == "MEASURE") {
+                setIntegerParam(this->RBD9103_Sampling, RBD_ON);
+            } else {
+                setIntegerParam(this->RBD9103_Sampling, RBD_OFF);
+            }
+        } else if(statusLine.rfind("P, PID", 0) == 0) {
+            const char* deviceId = splitRespOnDelim(statusLine, "=").c_str();
+            setStringParam(this->RBD9103_DeviceID, deviceId);
+            readDeviceID = true;
+        }
+    }
+    callParamCallbacks();
+
+    return asynSuccess;
+}
+
+RBDRange_t RBD9103::getRangeSettingFromStr(string rangeStr){
+    if (rangeStr == "AutoR") {
+        return RBD_RNG_AUTO;
+    } else if (rangeStr == "002nA") {
+        return RBD_RNG_2N;
+    } else if (rangeStr == "020nA") {
+        return RBD_RNG_20N;
+    } else if (rangeStr == "200nA") {
+        return RBD_RNG_200N;
+    } else if (rangeStr == "002uA") {
+        return RBD_RNG_2U;
+    } else if (rangeStr == "020uA") {
+        return RBD_RNG_20U;
+    } else if (rangeStr == "200uA") {
+        return RBD_RNG_200U;
+    } else if (rangeStr == "002mA") {
+        return RBD_RNG_2M;
+    }
+    return RBD_RNG_AUTO;
+}
+
+void RBD9103::parseSampling(string rawSampling){
+    const char* functionName = "parseSampling";
+
+    // Sampling response format:
+    // &S=,Range=002nA,+0.0008,nA
+
+    switch(rawSampling[2]){
+        case '=':
+            setIntegerParam(this->RBD9103_Stable, 1);
+            break;
+        default:
+            setIntegerParam(this->RBD9103_Stable, 0);
+            break;
+    }
+
+    string range = rawSampling.substr(rawSampling.find(",", 1) + 1, rawSampling.find(",", 2));
+    range = splitRespOnDelim(range, "=");
+    setIntegerParam(RBD9103_RangeActual, getRangeSettingFromStr(range));
+
+    string current = rawSampling.substr(rawSampling.find(",", 2) + 1, rawSampling.find(",", 3));
+    if (current[0] == '+'){
+        current = current.substr(1, current.length());
+    }
+    setDoubleParam(this->RBD9103_Current, atof(current.c_str()));
+    
+    string units = rawSampling.substr(rawSampling.find(",", 3) + 1, rawSampling.length());
+    if(units == "nA") {
+        setIntegerParam(this->RBD9103_Units, RBD_UNT_NA);
+    } else if(units == "uA") {
+        setIntegerParam(this->RBD9103_Units, RBD_UNT_UA);
+    } else if(units == "mA") {
+        setIntegerParam(this->RBD9103_Units, RBD_UNT_MA);
+    }
+
+    callParamCallbacks();
 }
 
 
 void RBD9103::sampleOnce(){
-    char ret[64];
-    status = writeReadCmd("&S", ret, sizeof(ret), TIMEOUT);
-    if (status != asynSuccess) {
+    const char* functionName = "sampleOnce";
+    string sampling = writeReadCmd("&S");
+    if (sampling == "") {
         ERR("Failed to read sampling response!");
         return;
     }
+    parseSampling(sampling);
 
-    // Response echos back &S and then follows with SamplingRate=$RATE,
-    // &S=,Range=002nA,+0.0008,nA
-    if(ret[2] == '='){
-        setIntegerParam(this->RBD9103_Stable, 1);
-    } else {
-        setIntegerParam(this->RBD9103_Stable, 0);
-    }
 
-    char* sampleToken=strtok(ret, ",");
-    char* range=strtok(NULL, ",");
-    char* current=strtok(NULL, ",");
-    char* unit=strtok(NULL, ",");
+    // if(ret[2] == '='){
+    //     setIntegerParam(this->RBD9103_Stable, 1);
+    // } else {
+    //     setIntegerParam(this->RBD9103_Stable, 0);
+    // }
 
-    // Get the units
-    if (strcmp(units, "nA") == 0) {
-        setIntegerParam(this->RBD9103_Units, RBD_UNT_NA);
-    } else if (strcmp(units, "uA") == 0) {
-        setIntegerParam(this->RBD9103_Units, RBD_UNT_UA * 1000);
-    } else if (strcmp(units, "mA") == 0) {
-        setIntegerParam(this->RBD9103_Units, RBD_UNT_MA * 1000000);
-    }
+    // char* sampleToken=strtok(ret, ",");
+    // char* range=strtok(NULL, ",");
+    // char* current=strtok(NULL, ",");
+    // char* units=strtok(NULL, ",");
 
-    if(current[0] == '+'){
-        current++;
-    }
-    setDoubleParam(this->RBD9103_Current, atof(current));
+    // // Get the units
+    // if (strcmp(units, "nA") == 0) {
+    //     setIntegerParam(this->RBD9103_Units, RBD_UNT_NA);
+    // } else if (strcmp(units, "uA") == 0) {
+    //     setIntegerParam(this->RBD9103_Units, RBD_UNT_UA * 1000);
+    // } else if (strcmp(units, "mA") == 0) {
+    //     setIntegerParam(this->RBD9103_Units, RBD_UNT_MA * 1000000);
+    // }
 
-    callParamCallbacks();
+    // if(current[0] == '+'){
+    //     current++;
+    // }
+    // setDoubleParam(this->RBD9103_Current, atof(current));
 }
 
 
 void RBD9103::samplingThread(){
     const char* functionName = "samplingThread";
-    double samplingRate;
 
-    getDoubleParam(this->RBD9103_SamplingRate, &samplingRate);
+    int sampling, samplingRateMs;
+    char ret[64];
+    size_t nread;
+    int eomReason;
+    asynStatus status;
 
-    while(this->sampling){
-        this->sampleOnce();
-        epicsThreadSleep(sampling);
+    while(this->alive) {
+        getIntegerParam(RBD9103_Sample, &sampling);
+        if(sampling == 1){
+            getIntegerParam(RBD9103_SamplingRate, &samplingRateMs);
+            double samplingReadTO = samplingRateMs / 1000.0 + 0.1;
+            asynStatus status = pasynOctetSyncIO->read(this->pasynUserSerialPort, ret, sizeof(ret), samplingReadTO, &nread, &eomReason);
+            if (status != asynSuccess) {
+                ERR("Failed to read sampling response!");
+            } else {
+                string samplingResp = string(ret);
+                if(!samplingResp.rfind("&S", 0)){
+                    ERR_ARGS("Recieved unexpected sampling response: %s... skipping!", samplingResp.c_str());
+                } else{
+                    parseSampling(samplingResp);
+                }
+            }
+        }
     }
+}
 
-    setIntegerParam(RBD9103_Sample, 0);
-    setIntegerParam(RBD9103_Stable, 0);
-    callParamCallbacks();
+
+void RBD9103::setSamplingRate(int rate){
+    const char* functionName = "setSamplingRate";
+    char cmd[32];
+    snprintf(cmd, sizeof(cmd), "&I%04d", rate);
+    writeReadCmd(cmd);
+    this->getDeviceStatus();
 }
 
 
@@ -142,39 +320,49 @@ asynStatus RBD9103::writeInt32(asynUser* pasynUser, epicsInt32 value){
     int function = pasynUser->reason;
     asynStatus status = asynSuccess;
     static const char* functionName = "writeInt32";
-    if (function == RDB9103_Sample){
-        if(value == 0 && !this->sampling){
-            ERR("Sampling is already stopped!");
-            return asynError;
-        } else if(value == 1 && this->sampling){
-            ERR("Sampling is already started!");
-            return asynError;
-        } else if(value == 1 && !this->sampling){
-            this->sampling = true;
-            this->samplingThread = epicsThreadCreate("RBD9103_Sampling",
-                                                    epicsThreadPriorityMedium,
-                                                    epicsThreadGetStackSize(epicsThreadStackMedium),
-                                                    (EPICSTHREADFUNC) samplingThreadC,
-                                                    (void*) this);
-        } else if(value == 0 && this->sampling){
-            this->sampling = false;
-            epicsThreadMustJoin(this->samplingThread);
+    char cmd[32], ret[64];
+    if (function == RBD9103_Sample) {
+        if(value == 0){
+            this->setSamplingRate(0);
+        } else {
+            int samplingRateMs;
+            getIntegerParam(RBD9103_SamplingRate, &samplingRateMs);
+            if(samplingRateMs > 9999 || samplingRateMs < 20){
+                ERR_ARGS("Invalid sampling rate: %d ms. Must be between 20 and 9999", samplingRateMs);
+                status = asynError;
+            } else {
+                this->setSamplingRate(samplingRateMs);
+            }
         }
     } else if (function == RBD9103_SampleOnce){
-        if (this->sampling){
+        int sampling;
+        getIntegerParam(RBD9103_Sample, &sampling);
+        if (sampling){
             ERR("Sampling is already started!");
             return asynError;
         } else {
             this->sampleOnce();
         }
-    } else if (function == RDB9103_Bias) {
-        char cmd[32], ret[64];
+    } else if (function == RBD9103_SamplingRate){
+        if(value == 0) {
+            setSamplingRate(0);
+            getDeviceStatus();
+        } else return asynSuccess;
+    } else if (function == RBD9103_Bias) {
         snprintf(cmd, sizeof(cmd), "&B%d", value);
-        status = writeReadCmd(cmd, ret, sizeof(ret), TIMEOUT);
-        if (status != asynSuccess) {
-            ERR("Failed to set bias setting!");
-            return status;
-        }
+    } else if (function == RBD9103_Range) {
+        snprintf(cmd, sizeof(cmd), "&R%d", value);
+    } else if (function == RBD9103_Filter) {
+        snprintf(cmd, sizeof(cmd), "&F%03d", value * 2);
+    } else if (function == RBD9103_AutoCal) {
+        snprintf(cmd, sizeof(cmd), "&CA%d", value);
+    } else if (function == RBD9103_InputGnd) {
+        snprintf(cmd, sizeof(cmd), "&G%d", value);
+    }
+
+    if(strlen(cmd) > 0){
+        writeReadCmd(cmd);
+        getDeviceStatus();
     }
 
     if (status) {
@@ -210,23 +398,46 @@ RBD9103::RBD9103(const char* portName, const char* serialPortName)
     createParam(RBD9103_ModelString, asynParamOctet, &this->RBD9103_Model);
     createParam(RBD9103_DrvVersionString, asynParamOctet, &this->RBD9103_DrvVersion);
     createParam(RBD9103_NumDigitsString, asynParamInt32, &this->RBD9103_NumDigits);
+    createParam(RBD9103_SamplingRateString, asynParamInt32, &this->RBD9103_SamplingRate);
+    createParam(RBD9103_StableString, asynParamInt32, &this->RBD9103_Stable);
+    createParam(RBD9103_SampleString, asynParamInt32, &this->RBD9103_Sample);
+    createParam(RBD9103_SamplingString, asynParamInt32, &this->RBD9103_Sampling);
+    createParam(RBD9103_UnitsString, asynParamInt32, &this->RBD9103_Units);
+    createParam(RBD9103_CurrentString, asynParamFloat64, &this->RBD9103_Current);
+    createParam(RBD9103_OffsetNullString, asynParamFloat64, &this->RBD9103_OffsetNull);
+    createParam(RBD9103_InputGndString, asynParamInt32, &this->RBD9103_InputGnd);
+    createParam(RBD9103_RangeString, asynParamInt32, &this->RBD9103_Range);
+    createParam(RBD9103_RangeActualString, asynParamInt32, &this->RBD9103_RangeActual);
+    createParam(RBD9103_SampleOnceString, asynParamInt32, &this->RBD9103_SampleOnce);
+    createParam(RBD9103_BiasString, asynParamInt32, &this->RBD9103_Bias);
+    createParam(RBD9103_FilterString, asynParamInt32, &this->RBD9103_Filter);
+    createParam(RBD9103_AutoCalString, asynParamInt32, &this->RBD9103_AutoCal);
+    createParam(RBD9103_AutoGroundingString, asynParamInt32, &this->RBD9103_AutoGrounding);
+    createParam(RBD9103_DeviceIDString, asynParamOctet, &this->RBD9103_DeviceID);
+    createParam(RBD9103_FwVersionString, asynParamOctet, &this->RBD9103_FwVersion);
+    createParam(RBD9103_BuildDateString, asynParamOctet, &this->RBD9103_BuildDate);
+    createParam(RBD9103_DeviceDescString, asynParamOctet, &this->RBD9103_DeviceDesc);
+    createParam(RBD9103_ManufacturerString, asynParamOctet, &this->RBD9103_Manufacturer);
 
     setStringParam(this->RBD9103_DrvVersion, RBD9103_DRIVER_VERSION);
-    char ret[32];
-    asynStatus status = writeReadCmd("&K", ret, sizeof(ret), TIMEOUT);
-    if (status != asynSuccess) {
+    string modelResp = writeReadCmd("&K");
+    if (modelResp == "") {
         ERR("Failed to get model number");
         return;
     }
 
     // Response echos back &K and then follows with Key=$MODEL,
     // so split on the equal sign to get the model number alone.
-    char* model = strtok(ret, "=");
-    strtok(NULL, "="); // Skip the first token
-    setStringParam(this->RBD9103_Model, model);
+    string model = modelResp.substr(modelResp.find("=") + 1, modelResp.length());
 
+    setStringParam(this->RBD9103_Model, model.c_str());
+    setStringParam(this->RBD9103_DeviceDesc, "PicoAmmeter");
+    setStringParam(this->RBD9103_Manufacturer, "RBD Instruments");
     callParamCallbacks();
-    LOG_ARGS("Connected to ammeter: %s", model);
+
+    LOG_ARGS("Connected to ammeter: %s", model.c_str());
+
+    this->getDeviceStatus();
 
     epicsAtExit(exitCallbackC, (void*) this);
 }
@@ -235,11 +446,10 @@ RBD9103::~RBD9103(){
     const char* functionName = "~RBD9103";
 
     LOG("Shutting down RBD 9103 IOC...");
-    if(this->samplingThread != NULL && this->sampling){
-        this->sampling = false;
-        epicsThreadMustJoin(this->samplingThread);
+    this->alive = false;
+    if(this->samplingThreadId != NULL){
+        epicsThreadMustJoin(this->samplingThreadId);
     }
-
     LOG("Done");
 }
 

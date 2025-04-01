@@ -2,6 +2,35 @@
 # EPICS database file for the RBD9103 PicoAmmeter
 #
 
+record(stringin, "$(P)$(R)DeviceDesc_RBV"){
+    field(DTYP, "asynOctetRead")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_DEVICE_DESC")
+    field(SCAN, "I/O Intr")
+}
+record(stringin, "$(P)$(R)Manufacturer_RBV"){
+    field(DTYP, "asynOctetRead")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_MANUFACTURER")
+    field(SCAN, "I/O Intr")
+}
+
+record(stringin, "$(P)$(R)FwVersion_RBV"){
+    field(DTYP, "asynOctetRead")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_FW_VERSION")
+    field(SCAN, "I/O Intr")
+}
+
+record(stringin, "$(P)$(R)Build_RBV"){
+    field(DTYP, "asynOctetRead")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_BUILD_DATE")
+    field(SCAN, "I/O Intr")
+}
+
+record(stringin, "$(P)$(R)DeviceID_RBV"){
+    field(DTYP, "asynOctetRead")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_DEVICE_ID")
+    field(SCAN, "I/O Intr")
+}
+
 record(stringin, "$(P)$(R)Model_RBV"){
     field(DTYP, "asynOctetRead")
     field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_MODEL")
@@ -43,130 +72,6 @@ record(mbbi, "$(P)$(R)NumDigits_RBV"){
     field(SCAN, "I/O Intr")
 }
 
-record(bo, "$(P)$(R)InputGrounding"){
-    field(DTYP, "asynInt32")
-    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_INPUT_GND")
-    field(ZRVL, "0")
-    field(ZRST, "Normal")
-    field(ONVL, "1")
-    field(ONST, "Grounded")
-    field(PINI, "YES")
-    field(VAL, "0")
-}
-
-record(bi, "$(P)$(R)InputGrounding_RBV"){
-    field(DTYP, "asynInt32")
-    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_INPUT_GND")
-    field(ZRVL, "0")
-    field(ZRST, "Normal")
-    field(ONVL, "1")
-    field(ONST, "Grounded")
-    field(SCAN, "I/O Intr")
-}
-
-record(bo, "$(P)$(R)Bias"){
-    field(DTYP, "asynInt32")
-    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_BIAS")
-    field(ZRVL, "0")
-    field(ZRST, "Off")
-    field(ONVL, "1")
-    field(ONST, "On")
-    field(PINI, "YES")
-    field(VAL, "0")
-}
-record(bi, "$(P)$(R)Bias_RBV"){
-    field(DTYP, "asynInt32")
-    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_BIAS")
-    field(ZRVL, "0")
-    field(ZRST, "Off")
-    field(ONVL, "1")
-    field(ONST, "On")
-    field(SCAN, "I/O Intr")
-}
-
-record(bo, "$(P)$(R)HighSpeed"){
-    field(DTYP, "asynInt32")
-    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_HIGH_SPEED")
-    field(ZRVL, "0")
-    field(ZRST, "Off")
-    field(ONVL, "1")
-    field(ONST, "On")
-    field(PINI, "NO")
-    field(VAL, "0")
-}
-
-record(bi, "$(P)$(R)HighSpeed_RBV"){
-    field(DTYP, "asynInt32")
-    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_HIGH_SPEED")
-    field(ZRVL, "0")
-    field(ZRST, "Off")
-    field(ONVL, "1")
-    field(ONST, "On")
-    field(SCAN, "I/O Intr")
-}
-
-record(ao, "$(P)$(R)SamplingRate"){
-    field(DTYP, "asynInt32")
-    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_SAMPLING_RATE")
-    field(PINI, "YES")
-    field(VAL, "0")
-}
-
-
-record(ai, "$(P)$(R)Current_RB"){
-    field(DTYP, "asynInt32")
-    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_CURRENT")
-    field(SCAN, "I/O Intr")
-    field(VAL, "0")
-}
-
-
-
-record(mbbo, "$(P)$(R)Sample"){
-    field(DTYP, "asynInt32")
-    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_SAMPLE")
-    field(ZRVL, "0")
-    field(ZRST, "Idle")
-    field(ONVL, "1")
-    field(ONST, "Sampling")
-    field(PINI, "NO")
-    field(VAL, "0")
-}
-
-record(bi, "$(P)$(R)Sample_RBV"){
-    field(DTYP, "asynInt32")
-    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_SAMPLE")
-    field(ZRVL, "0")
-    field(ZRST, "Idle")
-    field(ONVL, "1")
-    field(ONST, "Sampling")
-    field(SCAN, "I/O Intr")
-}
-
-record(bo, "$(P)$(R)SampleOnce"){
-    field(DTYP, "asynInt32")
-    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_SAMPLE_ONCE")
-    field(ZRVL, "0")
-    field(ZRST, "Idle")
-    field(ONVL, "1")
-    field(ONST, "Sample")
-    field(PINI, "NO")
-    field(VAL, "0")
-}
-
-
-record(mbbo, "$(P)$(R)Filter"){
-    field(DTYP, "asynInt32")
-    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_FILTER")
-    field(ZRVL, "0")
-    field(ZRST, "00")
-    field(ONVL, "1")
-    field(ONST, "On")
-    field(TWVL, "2")
-    field(TWST, "Auto")
-    field(PINI, "Yes")
-    field(VAL, "0")
-}
 
 record(mbbo, "$(P)$(R)Range"){
     field(DTYP, "asynInt32")
@@ -187,7 +92,246 @@ record(mbbo, "$(P)$(R)Range"){
     field(SXST, "200uA")
     field(SVVL, "7")
     field(SVST, "2mA")
-    field(VAL, "1")
-    field(PINI, "YES")
+    field(VAL, "0")
 }
+
+record(mbbi, "$(P)$(R)Range_RBV"){
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_RANGE")
+    field(ZRVL, "0")
+    field(ZRST, "Auto")
+    field(ONVL, "1")
+    field(ONST, "2nA")
+    field(TWVL, "2")
+    field(TWST, "20nA")
+    field(THVL, "3")
+    field(THST, "200nA")
+    field(FRVL, "4")
+    field(FRST, "2uA")
+    field(FVVL, "5")
+    field(FVST, "20uA")
+    field(SXVL, "6")
+    field(SXST, "200uA")
+    field(SVVL, "7")
+    field(SVST, "2mA")
+    field(VAL, "1")
+    field(SCAN, "I/O Intr")
+}
+
+record(mbbi, "$(P)$(R)RangeActual_RBV"){
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_RANGE_ACTUAL")
+    field(ZRVL, "0")
+    field(ZRST, "Auto")
+    field(ONVL, "1")
+    field(ONST, "2nA")
+    field(TWVL, "2")
+    field(TWST, "20nA")
+    field(THVL, "3")
+    field(THST, "200nA")
+    field(FRVL, "4")
+    field(FRST, "2uA")
+    field(FVVL, "5")
+    field(FVST, "20uA")
+    field(SXVL, "6")
+    field(SXST, "200uA")
+    field(SVVL, "7")
+    field(SVST, "2mA")
+    field(VAL, "1")
+    field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)InputGnd"){
+    field(DTYP, "asynInt32")
+    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_INPUT_GND")
+    field(ZNAM, "Normal")
+    field(ONAM, "Grounded")
+    field(VAL, "0")
+}
+
+record(bi, "$(P)$(R)InputGnd_RBV"){
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_INPUT_GND")
+    field(ZNAM, "Normal")
+    field(ONAM, "Grounded")
+    field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)Bias"){
+    field(DTYP, "asynInt32")
+    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_BIAS")
+    field(ZNAM, "Off")
+    field(ONAM, "On")
+    field(VAL, "0")
+}
+record(bi, "$(P)$(R)Bias_RBV"){
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_BIAS")
+    field(ZNAM, "Off")
+    field(ONAM, "On")
+    field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)OffsetNull"){
+    field(DTYP, "asynInt32")
+    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_OFFSET_NULL")
+    field(ZNAM, "Off")
+    field(ONAM, "On")
+    field(VAL, "0")
+}
+record(bi, "$(P)$(R)OffsetNull_RBV"){
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_OFFSET_NULL")
+    field(ZNAM, "Off")
+    field(ONAM, "On")
+    field(SCAN, "I/O Intr")
+}
+
+# record(bo, "$(P)$(R)HighSpeed"){
+#     field(DTYP, "asynInt32")
+#     field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_HIGH_SPEED")
+#     field(ZRVL, "0")
+#     field(ZRST, "Off")
+#     field(ONVL, "1")
+#     field(ONST, "On")
+#     field(PINI, "NO")
+#     field(VAL, "0")
+# }
+
+# record(bi, "$(P)$(R)HighSpeed_RBV"){
+#     field(DTYP, "asynInt32")
+#     field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_HIGH_SPEED")
+#     field(ZRVL, "0")
+#     field(ZRST, "Off")
+#     field(ONVL, "1")
+#     field(ONST, "On")
+#     field(SCAN, "I/O Intr")
+# }
+
+record(ao, "$(P)$(R)SamplingRate"){
+    field(DTYP, "asynInt32")
+    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_SAMPLING_RATE")
+    field(LOLO, "20")
+    field(HIHI, "9999")
+    field(EGU, "ms")
+    field(PINI, "YES")
+    field(VAL, "0")
+}
+
+record(ai, "$(P)$(R)SamplingRate_RBV"){
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_SAMPLING_RATE")
+    field(LOLO, "20")
+    field(HIHI, "9999")
+    field(EGU, "ms")
+    field(SCAN, "I/O Intr")
+    field(VAL, "0")
+}
+
+
+record(ai, "$(P)$(R)Current_RBV"){
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_CURRENT")
+    field(SCAN, "I/O Intr")
+    field(VAL, "0")
+}
+
+record(mbbi, "$(P)$(R)Units_RBV"){
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_UNITS")
+    field(ZRVL, "0")
+    field(ZRST, "nA")
+    field(ONVL, "1")
+    field(ONST, "uA")
+    field(TWVL, "2")
+    field(TWST, "mA")
+    field(THVL, "3")
+    field(THST, "A")
+    field(SCAN, "I/O Intr")
+}
+
+
+record(bo, "$(P)$(R)Sample"){
+    field(DTYP, "asynInt32")
+    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_SAMPLE")
+    field(ZNAM, "Idle")
+    field(ONAM, "Sampling")
+    field(PINI, "NO")
+    field(VAL, "0")
+}
+
+record(bi, "$(P)$(R)Sample_RBV"){
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_SAMPLE")
+    field(ZNAM, "Idle")
+    field(ONAM, "Sampling")
+    field(SCAN, "I/O Intr")
+}
+
+record(bi, "$(P)$(R)Stable_RBV"){
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_STABLE")
+    field(ZNAM, "Not Stable")
+    field(ONAM, "Stable")
+    field(SCAN, "I/O Intr")
+}
+
+record(calc, "$(P)$(R)Sampling_RBV"){
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_SAMPLING")
+    field(INPA, "$(P)$(R)SampleRate_RBV NPP NMS")
+    field(CALC, "A == 0 ? 0 : 1")
+    field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)SampleOnce"){
+    field(DTYP, "asynInt32")
+    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_SAMPLE_ONCE")
+    field(ZNAM, "Idle")
+    field(ONAM, "Sample")
+    field(PINI, "NO")
+    field(VAL, "0")
+}
+
+
+record(mbbo, "$(P)$(R)Filter"){
+    field(DTYP, "asynInt32")
+    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_FILTER")
+    field(ZRVL, "0")
+    field(ZRST, "0")
+    field(ONVL, "1")
+    field(ONST, "2")
+    field(TWVL, "2")
+    field(TWST, "4")
+    field(THVL, "3")
+    field(THST, "8")
+    field(FRVL, "4")
+    field(FRST, "16")
+    field(FVVL, "5")
+    field(FVST, "32")
+    field(SXVL, "6")
+    field(SXST, "64")
+    field(VAL, "0")
+}
+
+record(mbbi, "$(P)$(R)Filter_RBV"){
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_FILTER")
+    field(ZRVL, "0")
+    field(ZRST, "0")
+    field(ONVL, "1")
+    field(ONST, "2")
+    field(TWVL, "2")
+    field(TWST, "4")
+    field(THVL, "3")
+    field(THST, "8")
+    field(FRVL, "4")
+    field(FRST, "16")
+    field(FVVL, "5")
+    field(FVST, "32")
+    field(SXVL, "6")
+    field(SXST, "64")
+    field(SCAN, "I/O Intr")
+}
+
 

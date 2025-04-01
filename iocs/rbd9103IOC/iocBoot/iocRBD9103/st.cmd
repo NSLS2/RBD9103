@@ -18,7 +18,7 @@ epicsEnvSet("PREFIX", "$(P)$(R)")
 dbLoadDatabase("../../dbd/rbd9103App.dbd",0,0)
 rbd9103App_registerRecordDeviceDriver(pdbbase) 
 
-drvAsynSerialPortConfigure("$(SERIAL_PORT)", "/dev/ttyUSB0", 0, 0, 0)
+drvAsynSerialPortConfigure("$(SERIAL_PORT)", "/dev/ttyUSB1", 0, 0, 0)
 
 # For serial options, see the `Communications and Command Reference` section
 # of the manual. This is the low-speed comms.
