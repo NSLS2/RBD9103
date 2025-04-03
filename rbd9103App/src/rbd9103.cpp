@@ -30,18 +30,18 @@ using namespace std;
 
 // Warning message formatters
 #define WARN(msg) \
-    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "WARN | %s::%s: %s\n", driverName, functionName, msg)
+    asynPrint(pasynUserSelf, ASYN_TRACE_WARN, "WARN | %s::%s: %s\n", driverName, functionName, msg)
 
 #define WARN_ARGS(fmt, ...)                                                            \
-    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "WARN | %s::%s: " fmt "\n", driverName, \
+    asynPrint(pasynUserSelf, ASYN_TRACE_WARN, "WARN | %s::%s: " fmt "\n", driverName, \
               functionName, __VA_ARGS__);
 
 // Log message formatters
 #define LOG(msg) \
-    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "%s::%s: %s\n", driverName, functionName, msg)
+    asynPrint(pasynUserSelf, ASYN_TRACE_FLOW, "%s::%s: %s\n", driverName, functionName, msg)
 
 #define LOG_ARGS(fmt, ...)                                                                       \
-    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, "%s::%s: " fmt "\n", driverName, functionName, \
+    asynPrint(pasynUserSelf, ASYN_TRACE_FLOW, "%s::%s: " fmt "\n", driverName, functionName, \
               __VA_ARGS__);
 
 
@@ -115,13 +115,13 @@ asynStatus RBD9103::getDeviceStatus(){
     int eomReason;
     asynStatus status = pasynOctetSyncIO->write(this->pasynUserSerialPort, "&Q", 2, 1, &nwrite);
 
-    printf("Reading device status:\n");
+    LOG("Reading device status:");
     bool readDeviceID = false;
     char ret[64];
     while(!readDeviceID){
         status = pasynOctetSyncIO->read(this->pasynUserSerialPort, ret, sizeof(ret), 1, &nread, &eomReason);
         string statusLine = string(ret);
-        printf("%s\n", statusLine.c_str());
+        LOG(statusLine.c_str());
         if(status != asynSuccess){
             ERR("Failed to read device status!");
             return status;
@@ -234,17 +234,6 @@ void RBD9103::parseSampling(string rawSampling){
 }
 
 
-void RBD9103::sampleOnce(){
-    const char* functionName = "sampleOnce";
-    string sampling = writeReadCmd("&S");
-    if (sampling == "") {
-        ERR("Failed to read sampling response!");
-        return;
-    }
-    parseSampling(sampling);
-}
-
-
 void RBD9103::samplingThread(){
     const char* functionName = "samplingThread";
 
@@ -252,13 +241,20 @@ void RBD9103::samplingThread(){
     char ret[64];
     size_t nread;
     int eomReason;
+    int numSamples, sampleCounter;
+    RBDSamplingMode_t samplingMode;
     asynStatus status;
 
     while(this->alive) {
         getIntegerParam(RBD9103_Sample, &sampling);
         if(sampling == 1){
+            getIntegerParam(RBD9103_SamplingMode, (int*) &samplingMode);
+            getIntegerParam(RBD9103_NumSamples, &numSamples);
+            getIntegerParam(RBD9103_SampleCounter, &sampleCounter);
+
             getIntegerParam(RBD9103_SamplingRate, &samplingRateMs);
             double samplingReadTO = samplingRateMs / 1000.0 + 0.1;
+
             asynStatus status = pasynOctetSyncIO->read(this->pasynUserSerialPort, ret, sizeof(ret), samplingReadTO, &nread, &eomReason);
             if (status != asynSuccess) {
                 ERR("Failed to read sampling response!");
@@ -268,9 +264,19 @@ void RBD9103::samplingThread(){
                     ERR_ARGS("Recieved unexpected sampling response: %s... skipping!", samplingResp.c_str());
                 } else{
                     parseSampling(samplingResp);
+                    sampleCounter++;
+                    setIntegerParam(RBD9103_SampleCounter, sampleCounter);
+                    if(samplingMode == RBD_SAMPLING_MODE_SINGLE){
+                        setIntegerParam(RBD9103_Sample, 0);
+                    } else if(samplingMode == RBD_SAMPLING_MODE_MULTIPLE && sampleCounter == numSamples){
+                        setIntegerParam(RBD9103_Sample, 0);
+                    }
                 }
             }
+            callParamCallbacks();
         }
+    } else {
+        epicsThreadSleep(0.05);
     }
 }
 
@@ -299,17 +305,9 @@ asynStatus RBD9103::writeInt32(asynUser* pasynUser, epicsInt32 value){
                 ERR_ARGS("Invalid sampling rate: %d ms. Must be between 20 and 9999", samplingRateMs);
                 status = asynError;
             } else {
+                setIntegerParam(RBD9103_SampleCounter, 0);
                 this->setSamplingRate(samplingRateMs);
             }
-        }
-    } else if (function == RBD9103_SampleOnce){
-        int sampling;
-        getIntegerParam(RBD9103_Sample, &sampling);
-        if (sampling){
-            ERR("Sampling is already started!");
-            return asynError;
-        } else {
-            this->sampleOnce();
         }
     } else if (function == RBD9103_SamplingRate){
         if(value == 0) {
@@ -382,6 +380,7 @@ RBD9103::RBD9103(const char* portName, const char* serialPortName)
     createParam(RBD9103_StableString, asynParamInt32, &this->RBD9103_Stable);
     createParam(RBD9103_SampleString, asynParamInt32, &this->RBD9103_Sample);
     createParam(RBD9103_SamplingString, asynParamInt32, &this->RBD9103_Sampling);
+    createParam(RBD9103_NumSamplesString, asynParamInt32, &this->RBD9103_NumSamples);
     createParam(RBD9103_UnitsString, asynParamInt32, &this->RBD9103_Units);
     createParam(RBD9103_CurrentString, asynParamFloat64, &this->RBD9103_Current);
     createParam(RBD9103_OffsetNullString, asynParamFloat64, &this->RBD9103_OffsetNull);

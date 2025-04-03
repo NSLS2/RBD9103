@@ -283,6 +283,37 @@ record(bi, "$(P)$(R)Sample_RBV"){
     field(SCAN, "I/O Intr")
 }
 
+record(mbbo, "$(P)$(R)SamplingMode"){
+    field(DTYP, "asynInt32")
+    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_SAMPLING_MODE")
+    field(ZRVL, "0")
+    field(ZRST, "Single")
+    field(ONVL, "1")
+    field(ONST, "Multiple")
+    field(TWVL, "2")
+    field(TWST, "Continuous")
+    field(VAL, "0")
+}
+
+record(mbbi, "$(P)$(R)SamplingMode_RBV"){
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_SAMPLING_MODE")
+    field(ZRVL, "0")
+    field(ZRST, "Single")
+    field(ONVL, "1")
+    field(ONST, "Multiple")
+    field(TWVL, "2")
+    field(TWST, "Continuous")
+    field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)NumSamples_RBV"){
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_NUM_SAMPLES")
+    field(SCAN, "I/O Intr")
+    field(VAL, "0")
+}
+
 record(bi, "$(P)$(R)Stable_RBV"){
     field(DTYP, "asynInt32")
     field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_STABLE")
@@ -292,11 +323,10 @@ record(bi, "$(P)$(R)Stable_RBV"){
 }
 
 record(calc, "$(P)$(R)Sampling_RBV"){
-    field(DTYP, "asynInt32")
-    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_SAMPLING")
-    field(INPA, "$(P)$(R)SampleRate_RBV NPP NMS")
+    field(DTYP, "Soft Channel")
+    field(INPA, "$(P)$(R)SamplingRate_RBV NPP NMS")
     field(CALC, "A == 0 ? 0 : 1")
-    field(SCAN, "I/O Intr")
+    field(OOPT, "On Change")
 }
 
 record(bo, "$(P)$(R)SampleOnce"){

@@ -36,7 +36,9 @@ static const char* driverName = "RBD9103";
 #define RBD9103_CurrentString "RBD_CURRENT"
 #define RBD9103_RangeString "RBD_RANGE"
 #define RBD9103_RangeActualString "RBD_RANGE_ACTUAL"
-#define RBD9103_SampleOnceString "RBD_SAMPLE_ONCE"
+#define RBD9103_SamplingModeString "RBD_SAMPLING_MODE"
+#define RBD9103_NumSamplesString "RBD_NUM_SAMPLES"
+#define RBD9103_SampleCounterString "RBD_SAMPLE_COUNTER"
 #define RBD9103_OffsetNullString "RBD_OFFSET_NULL"
 #define RBD9103_BiasString "RBD_BIAS"
 #define RBD9103_FilterString "RBD_FILTER"
@@ -83,6 +85,12 @@ typedef enum RBD_FILTER_MODE {
     RBD_FLT_064 = 6,
 } RBDFilterMode_t;
 
+typedef enum RBD_SAMPLING_MODE {
+    RBD_SAMPLING_MODE_SINGLE = 0,
+    RBD_SAMPLING_MODE_MULTIPLE = 1,
+    RBD_SAMPLING_MODE_CONTINUOUS = 2,
+} RBDSamplingMode_t;
+
 using namespace std;
 
 class RBD9103 : public asynPortDriver
@@ -100,7 +108,6 @@ private:
     epicsThreadId samplingThreadId;
     asynStatus getDeviceStatus();
     string splitRespOnDelim(string resp, const char* delim);
-    void sampleOnce();
     void parseSampling(string rawSampling);
     void setSamplingRate(int rate);
     RBDRange_t getRangeSettingFromStr(string rangeStr);
@@ -112,12 +119,14 @@ private:
     int RBD9103_Stable;
     int RBD9103_Sample;
     int RBD9103_Sampling;
+    int RBD9103_SamplingMode;
+    int RBD9103_SampleCounter;
+    int RBD9103_NumSamples;
     int RBD9103_Units;
     int RBD9103_Current;
     int RBD9103_Range;
     int RBD9103_OffsetNull;
     int RBD9103_RangeActual;
-    int RBD9103_SampleOnce;
     int RBD9103_InputGnd;
     int RBD9103_Bias;
     int RBD9103_Filter;
