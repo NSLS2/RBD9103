@@ -57,17 +57,29 @@ extern "C" int RBD9103Config(const char* portName, const char* serialPortName) {
     return (asynSuccess);
 }
 
+
+/**
+ * Callback fired during a clean exit from the IOC application.
+ * Cleans up sampling thread and destroys driver object.
+*/
 static void exitCallbackC(void* pPvt) {
     RBD9103* pRBD9103 = (RBD9103*)pPvt;
     delete pRBD9103;
 }
 
+
+/**
+ * Wrapper function to allow for calling C++ class method from C function.
+*/
 static void samplingThreadC(void* pPvt){
     RBD9103* pRBD9103 = (RBD9103*)pPvt;
     pRBD9103->samplingThread();
 }
 
 
+/**
+ * Helper function that sends command to low level serial port and waits for response
+*/
 string RBD9103::writeReadCmd(const char* cmd){
 
     size_t nwrite, nread;
@@ -88,19 +100,6 @@ string RBD9103::writeReadCmd(const char* cmd){
     return string(ret);
 }
 
-// Firmware Version: 02.09
-// Build: 1-25-18
-// R, Range=AutoR
-// I, sample Interval=0500 mSec
-// L, Chart Log Update Interval=0200 mSec
-// B, BIAS=OFF
-// F, Filter=032
-// V, FormatLen=5
-// CA, Autocal=OFF
-// G, AutoGrounding=DISABLED
-// Q, State=MEASURE
-// P, PID=NEW_DEVICE
-
 
 string RBD9103::splitRespOnDelim(string resp, const char* delim){
     return resp.substr(resp.find(delim) + strlen(delim), resp.length());
@@ -108,17 +107,44 @@ string RBD9103::splitRespOnDelim(string resp, const char* delim){
 
 
 
+/**
+ * Helper function that reads current device status
+ * 
+ * Example output from &Q command
+ * 
+ *   Firmware Version: 02.09
+ *   Build: 1-25-18
+ *   R, Range=AutoR
+ *   I, sample Interval=0500 mSec
+ *   L, Chart Log Update Interval=0200 mSec
+ *   B, BIAS=OFF
+ *   F, Filter=032
+ *   V, FormatLen=5
+ *   CA, Autocal=OFF
+ *   G, AutoGrounding=DISABLED
+ *   Q, State=MEASURE
+ *   P, PID=NEW_DEVICE
+ * 
+*/
 asynStatus RBD9103::getDeviceStatus(){
     const char* functionName = "getDeviceStatus";
     pasynOctetSyncIO->flush(this->pasynUserSerialPort);
     size_t nwrite, nread;
     int eomReason;
+
+    // Lock the mutex for the driver so we can guarantee that any reads are going to be coming from
+    // the output of our command.
+    this->lock();
+
+    // Send &Q to get device status
     asynStatus status = pasynOctetSyncIO->write(this->pasynUserSerialPort, "&Q", 2, 1, &nwrite);
 
     LOG("Reading device status:");
     bool readDeviceID = false;
     char ret[64];
     while(!readDeviceID){
+
+        // Device status is several lines long, so we need to 
         status = pasynOctetSyncIO->read(this->pasynUserSerialPort, ret, sizeof(ret), 1, &nread, &eomReason);
         string statusLine = string(ret);
         LOG(statusLine.c_str());
@@ -176,11 +202,17 @@ asynStatus RBD9103::getDeviceStatus(){
             readDeviceID = true;
         }
     }
+    // unlock to allow for aynchronous device access.
+    this->unlock();
     callParamCallbacks();
 
     return asynSuccess;
 }
 
+
+/**
+ * Convert string representation of range setting to Enum
+*/
 RBDRange_t RBD9103::getRangeSettingFromStr(string rangeStr){
     if (rangeStr == "AutoR") {
         return RBD_RNG_AUTO;
@@ -202,6 +234,10 @@ RBDRange_t RBD9103::getRangeSettingFromStr(string rangeStr){
     return RBD_RNG_AUTO;
 }
 
+
+/**
+ * Parse single sampling response
+*/
 void RBD9103::parseSampling(string rawSampling){
     const char* functionName = "parseSampling";
 
@@ -234,6 +270,9 @@ void RBD9103::parseSampling(string rawSampling){
 }
 
 
+/**
+ * Main sampling loop. Runs on seperate thread spawned after connection is established.
+*/
 void RBD9103::samplingThread(){
     const char* functionName = "samplingThread";
 
@@ -371,6 +410,7 @@ RBD9103::RBD9103(const char* portName, const char* serialPortName)
 {
     const char* functionName = "RBD9103";
 
+    // Connect this driver to the low level serial port, so we can access it later.
     pasynOctetSyncIO->connect(serialPortName, 0, &this->pasynUserSerialPort, NULL);
 
     createParam(RBD9103_ModelString, asynParamOctet, &this->RBD9103_Model);
@@ -399,24 +439,35 @@ RBD9103::RBD9103(const char* portName, const char* serialPortName)
     createParam(RBD9103_ManufacturerString, asynParamOctet, &this->RBD9103_Manufacturer);
 
     setStringParam(this->RBD9103_DrvVersion, RBD9103_DRIVER_VERSION);
-    string modelResp = writeReadCmd("&K");
+
+    // Get the model number
+    string modelCmdResp = writeReadCmd("&K");
     if (modelResp == "") {
         ERR("Failed to get model number");
         return;
+    } else {
+        // Response echos back &K and then follows with Key=$MODEL,
+        // so split on the equal sign to get the model number alone.
+        setStringParam(this->RBD9103_Model, this->splitRespOnDelim("=").c_str());
     }
 
-    // Response echos back &K and then follows with Key=$MODEL,
-    // so split on the equal sign to get the model number alone.
-    string model = modelResp.substr(modelResp.find("=") + 1, modelResp.length());
-
-    setStringParam(this->RBD9103_Model, model.c_str());
     setStringParam(this->RBD9103_DeviceDesc, "PicoAmmeter");
     setStringParam(this->RBD9103_Manufacturer, "RBD Instruments");
-    callParamCallbacks();
-
     LOG_ARGS("Connected to ammeter: %s", model.c_str());
 
     this->getDeviceStatus();
+
+    // Make sure we flush any parameter settings, after fetching status.
+    callParamCallbacks();
+
+    epicsThreadOpts opts;
+    opts.priority = epicsThreadPriorityMedium;
+    opts.stackSize = epicsThreadGetStackSize(epicsThreadStackMedium);
+    opts.joinable = 1;
+
+    // Spawn our sampling thread. Make it joinable
+    this->samplingThreadId =
+        epicsThreadCreateOpt("samplingThread", (EPICSTHREADFUNC) samplingThreadC, this, &opts);
 
     epicsAtExit(exitCallbackC, (void*) this);
 }
@@ -424,6 +475,7 @@ RBD9103::RBD9103(const char* portName, const char* serialPortName)
 RBD9103::~RBD9103(){
     const char* functionName = "~RBD9103";
 
+    // Make sure we clean up our sampling thread here.
     LOG("Shutting down RBD 9103 IOC...");
     this->alive = false;
     if(this->samplingThreadId != NULL){
@@ -438,16 +490,11 @@ RBD9103::~RBD9103(){
 // RBD9103 ioc shell registration
 //-------------------------------------------------------------
 
-/* RBD9103Config -> These are the args passed to the constructor in the epics config function */
+// port name of the driver itself
 static const iocshArg RBD9103ConfigArg0 = {"portName", iocshArgString};
 
-// This parameter must be customized by the driver author. Generally a URL, Serial Number, ID, IP
-// are used to connect.
+// port name of the configured low-level serial port connected to the device
 static const iocshArg RBD9103ConfigArg1 = {"serialPortNameName", iocshArgString};
-
-// This parameter must be customized by the driver author. Generally a URL, Serial Number, ID, IP
-// are used to connect.
-static const iocshArg RBD9103ConfigArg2 = {"numChannels", iocshArgInt};
 
 /* Array of config args */
 static const iocshArg* const RBD9103ConfigArgs[] = {&RBD9103ConfigArg0, &RBD9103ConfigArg1};
