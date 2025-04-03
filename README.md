@@ -1,3 +1,3 @@
-# Sandbox
+# RBD9103
 
-A basic EPICS application used for testing that simply links several modules together.
+EPICS IOC application for controlling RBD 9103 PicoAmmeters.
