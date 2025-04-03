@@ -245,24 +245,7 @@ record(ai, "$(P)$(R)Current_RBV"){
     field(DTYP, "asynInt32")
     field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_CURRENT")
     field(SCAN, "I/O Intr")
-    field(EGU, "nA")
     field(VAL, "0")
-}
-
-record(stringin, "$(P)$(R)Units_RBV"){
-    field(DTYP, "asynOctet")
-    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_UNITS")
-    field(VAL, "nA")
-    field(SCAN, "I/O Intr")
-}
-
-# Helper record that writes the units into the EGU field of the current record
-record(scalcout, "$(P)$(R)UnitsOut"){
-    field(DTYP, "Soft Channel")
-    field(OUT, "$(P)$(R)Current_RBV.EGU PP NMS")
-    field(INPA, "$(P)$(R)Units_RBV")
-    field(CALC, "A")
-    field(OOPT, "On Change")
 }
 
 
@@ -379,4 +362,51 @@ record(mbbi, "$(P)$(R)Filter_RBV"){
     field(SCAN, "I/O Intr")
 }
 
+record(mbbo, "$(P)$(R)CurrentUnits") {
+    field(DTYP, "asynInt32")
+    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_CURRENT_UNITS")
+    field(ZRVL, "0")
+    field(ZRST, "nA")
+    field(ONVL, "1")
+    field(ONST, "uA")
+    field(TWVL, "2")
+    field(TWST, "mA")
+    field(VAL, "0")
+}
 
+record(mbbi, "$(P)$(R)CurrentUnits_RBV") {
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_CURRENT_UNITS")
+    field(ZRVL, "0")
+    field(ZRST, "nA")
+    field(ONVL, "1")
+    field(ONST, "uA")
+    field(TWVL, "2")
+    field(TWST, "mA")
+    field(SCAN, "I/O Intr")
+}
+
+record(ai, "$(P)$(R)AvgCurrent_RBV") {
+    field(DTYP, "asynFloat64")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_AVG_CURRENT")
+    field(SCAN, "I/O Intr")
+    field(VAL, "0")
+}
+
+
+record(bo, "$(P)$(R)AvgOnlyStable") {
+    field(DTYP, "asynInt32")
+    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_AVG_ONLY_STABLE")
+    field(ZNAM, "Off")
+    field(ONAM, "On")
+    field(PINI, "YES")
+    field(VAL, "1")
+}
+
+record(bi, "$(P)$(R)AvgOnlyStable_RBV") {
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_AVG_ONLY_STABLE")
+    field(ZNAM, "Off")
+    field(ONAM, "On")
+    field(SCAN, "I/O Intr")
+}
