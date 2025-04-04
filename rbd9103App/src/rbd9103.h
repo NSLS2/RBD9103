@@ -29,11 +29,12 @@ static const char* driverName = "RBD9103";
 #define RBD9103_DrvVersionString "RBD_DRV_VERSION"
 #define RBD9103_NumDigitsString "RBD_NUM_DIGITS"
 #define RBD9103_SamplingRateString "RBD_SAMPLING_RATE"
+#define RBD9103_SamplingRateActualString "RBD_SAMPLING_RATE_ACTUAL"
 #define RBD9103_StateString "RBD_STATE"
 #define RBD9103_StableString "RBD_STABLE"
 #define RBD9103_SampleString "RBD_SAMPLE"
 #define RBD9103_SamplingString "RBD_SAMPLING"
-#define RBD9103_UnitsString "RBD_UNITS"
+#define RBD9103_CurrentUnitsString "RBD_CURRENT_UNITS"
 #define RBD9103_CurrentString "RBD_CURRENT"
 #define RBD9103_RangeString "RBD_RANGE"
 #define RBD9103_RangeActualString "RBD_RANGE_ACTUAL"
@@ -110,6 +111,8 @@ private:
     epicsThreadId samplingThreadId;
     void getDeviceStatus();
     void getModelNumber();
+    void startSampling();
+    void stopSampling();
     string splitRespOnDelim(string resp, const char* delim);
     void parseSampling(string rawSampling);
     void setSamplingRate(int rate);
@@ -119,13 +122,14 @@ private:
     int RBD9103_DrvVersion;
     int RBD9103_NumDigits;
     int RBD9103_SamplingRate;
+    int RBD9103_SamplingRateActual;
     int RBD9103_Stable;
     int RBD9103_Sample;
     int RBD9103_State;
     int RBD9103_SamplingMode;
     int RBD9103_SampleCounter;
     int RBD9103_NumSamples;
-    int RBD9103_Units;
+    int RBD9103_CurrentUnits;
     int RBD9103_Current;
     int RBD9103_Range;
     int RBD9103_InRange;

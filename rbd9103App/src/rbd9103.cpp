@@ -165,7 +165,7 @@ void RBD9103::getDeviceStatus(){
             setIntegerParam(this->RBD9103_Range, getRangeSettingFromStr(range));
         } else if(statusLine.rfind("I, sample Interval", 0) == 0) {
             const char* sampleInterval = splitRespOnDelim(statusLine, "=").c_str();
-            setIntegerParam(this->RBD9103_SamplingRate, atoi(sampleInterval));
+            setIntegerParam(this->RBD9103_SamplingRateActual, atoi(sampleInterval));
         } else if(statusLine.rfind("L, Chart Log Update Interval", 0) == 0) {
             const char*chartLogUpdateInterval = splitRespOnDelim(statusLine, "=").c_str();
             //setStringParam(this->RBD9103_ChartLogUpdateInterval, );
@@ -260,6 +260,19 @@ RBDRange_t RBD9103::getRangeSettingFromStr(string rangeStr){
     return RBD_RNG_AUTO;
 }
 
+static vector<string> split(string input, const char* delim) {
+    vector<string> result;
+    size_t pos = 0;
+    string token;
+    while ((pos = input.find(delim)) != string::npos) {
+        token = input.substr(0, pos);
+        result.push_back(token);
+        input.erase(0, pos + strlen(delim));
+    }
+    result.push_back(input);
+    return result;
+}
+
 
 /**
  * Parse single sampling response
@@ -269,28 +282,57 @@ void RBD9103::parseSampling(string rawSampling){
 
     // Sampling response format:
     // &S=,Range=002nA,+0.0008,nA
+    LOG_ARGS("Parsing sampling response: %s", rawSampling.c_str());
 
-    switch(rawSampling[2]){
-        case '=':
-            setIntegerParam(this->RBD9103_Stable, 1);
-            break;
-        default:
-            setIntegerParam(this->RBD9103_Stable, 0);
-            break;
+    int sampleCounter;
+    getIntegerParam(RBD9103_SampleCounter, &sampleCounter);
+    setIntegerParam(RBD9103_SampleCounter, sampleCounter + 1);
+
+    vector<string> components = split(rawSampling, ",");
+    for(int i = 0; i < components.size(); i++){
+        switch(i) {
+            case 0:
+                switch(components[i][2]){
+                    case '=':
+                        setIntegerParam(this->RBD9103_Stable, 1);
+                        break;
+                    default:
+                        setIntegerParam(this->RBD9103_Stable, 0);
+                        break;
+                }
+                break;
+            case 1:
+            {
+                string range = components[i].substr(components[i].find("=") + 1, components[i].length());
+                setIntegerParam(this->RBD9103_Range, getRangeSettingFromStr(range));
+                break;
+            }
+            case 2:
+            {
+                const char* current = components[i].c_str();
+                if (current[0] == '+'){
+                    current = current + 1;
+                }
+                setDoubleParam(this->RBD9103_Current, atof(current));
+                break;
+            }
+            case 3:
+            {
+                const char* units = components[i].c_str();
+                if (strcmp(units, "nA") == 0){
+                    setIntegerParam(this->RBD9103_CurrentUnits, RBD_UNT_NA);
+                } else if(strcmp(units, "uA") == 0) {
+                    setIntegerParam(this->RBD9103_CurrentUnits, RBD_UNT_UA);
+                } else if(strcmp(units, "mA") == 0) {
+                    setIntegerParam(this->RBD9103_CurrentUnits, RBD_UNT_MA);
+                } else {
+                    ERR_ARGS("Recieved unexpected unit type: %s", units);
+                }
+                break;
+            }
+        }
     }
 
-    string range = rawSampling.substr(rawSampling.find(",", 1) + 1, rawSampling.find(",", 2));
-    range = splitRespOnDelim(range, "=");
-    setIntegerParam(RBD9103_RangeActual, getRangeSettingFromStr(range));
-
-    string current = rawSampling.substr(rawSampling.find(",", 2) + 1, rawSampling.find(",", 3));
-    if (current[0] == '+'){
-        current = current.substr(1, current.length());
-    }
-    setDoubleParam(this->RBD9103_Current, atof(current.c_str()));
-
-    string units = rawSampling.substr(rawSampling.find(",", 3) + 1, rawSampling.length());
-    setStringParam(this->RBD9103_Units, units.c_str());
 
     callParamCallbacks();
 }
@@ -312,28 +354,25 @@ void RBD9103::samplingThread(){
 
     while(this->alive) {
         getIntegerParam(RBD9103_Sample, &sampling);
-        if(sampling == 1){
-            getIntegerParam(RBD9103_SamplingMode, (int*) &samplingMode);
+        getIntegerParam(RBD9103_SamplingRateActual, &samplingRateMs);
+        getIntegerParam(RBD9103_SamplingMode, (int*) &samplingMode);
+        if(sampling == 1 && samplingMode != RBD_SAMPLING_MODE_SINGLE && samplingRateMs >= 20 && samplingRateMs <= 9999){
             getIntegerParam(RBD9103_NumSamples, &numSamples);
-            getIntegerParam(RBD9103_SampleCounter, &sampleCounter);
 
-            getIntegerParam(RBD9103_SamplingRate, &samplingRateMs);
             double samplingReadTO = samplingRateMs / 1000.0 + 0.1;
-
+            this->lock();
             asynStatus status = pasynOctetSyncIO->read(this->pasynUserSerialPort, ret, sizeof(ret), samplingReadTO, &nread, &eomReason);
+            this->unlock();
             if (status != asynSuccess) {
                 ERR("Failed to read sampling response!");
             } else {
-                string samplingResp = string(ret);
-                if(!samplingResp.rfind("&S", 0)){
-                    ERR_ARGS("Recieved unexpected sampling response: %s... skipping!", samplingResp.c_str());
+                if(ret[0] != '&' || ret[1] != 'S'){
+                    ERR_ARGS("Recieved unexpected sampling response: %s... skipping!", ret);
                 } else{
+                    string samplingResp = string(ret);
                     parseSampling(samplingResp);
-                    sampleCounter++;
-                    setIntegerParam(RBD9103_SampleCounter, sampleCounter);
-                    if(samplingMode == RBD_SAMPLING_MODE_SINGLE){
-                        setIntegerParam(RBD9103_Sample, 0);
-                    } else if(samplingMode == RBD_SAMPLING_MODE_MULTIPLE && sampleCounter == numSamples){
+                    getIntegerParam(RBD9103_SampleCounter, &sampleCounter);
+                    if(samplingMode == RBD_SAMPLING_MODE_MULTIPLE && sampleCounter == numSamples){
                         setIntegerParam(RBD9103_Sample, 0);
                     }
                 }
@@ -344,6 +383,26 @@ void RBD9103::samplingThread(){
         }
 
     } 
+}
+
+void RBD9103::startSampling(){
+    this->alive = true;
+
+    epicsThreadOpts opts;
+    opts.priority = epicsThreadPriorityMedium;
+    opts.stackSize = epicsThreadGetStackSize(epicsThreadStackMedium);
+    opts.joinable = 1;
+
+    // Spawn our sampling thread. Make it joinable
+    this->samplingThreadId =
+        epicsThreadCreateOpt("samplingThread", (EPICSTHREADFUNC) samplingThreadC, this, &opts);
+}
+
+void RBD9103::stopSampling(){
+    this->alive = false;
+    if(this->samplingThreadId != NULL){
+        epicsThreadMustJoin(this->samplingThreadId);
+    }
 }
 
 
@@ -362,8 +421,15 @@ asynStatus RBD9103::writeInt32(asynUser* pasynUser, epicsInt32 value){
     static const char* functionName = "writeInt32";
     char cmd[32], ret[64];
     if (function == RBD9103_Sample) {
+        RBDSamplingMode_t samplingMode;
+        getIntegerParam(RBD9103_SamplingMode, (int*) &samplingMode);
+
         if(value == 0){
             this->setSamplingRate(0);
+        } else if(samplingMode == RBD_SAMPLING_MODE_SINGLE) {
+            string samplingResp = writeReadCmd("&S");
+            parseSampling(samplingResp);
+            setIntegerParam(RBD9103_Sample, 0);
         } else {
             int samplingRateMs;
             getIntegerParam(RBD9103_SamplingRate, &samplingRateMs);
@@ -373,6 +439,7 @@ asynStatus RBD9103::writeInt32(asynUser* pasynUser, epicsInt32 value){
             } else {
                 setIntegerParam(RBD9103_SampleCounter, 0);
                 this->setSamplingRate(samplingRateMs);
+                this->startSampling();
             }
         }
     } else if (function == RBD9103_SamplingRate){
@@ -404,13 +471,13 @@ asynStatus RBD9103::writeInt32(asynUser* pasynUser, epicsInt32 value){
         }
     }
 
-    if(cmd != NULL && strlen(cmd) > 0) {
+    if(strlen(cmd) > 0) {
         writeReadCmd(cmd);
         getDeviceStatus();
     }
 
     if (status) {
-        ERR_ARGS("ERROR status=%d, function=%d, value=%f, msg=%s", status, function, value);
+        ERR_ARGS("ERROR status=%d, function=%d, value=%d", status, function, value);
     } else {
         setIntegerParam(function, value);
         LOG_ARGS("function=%d value=%f", function, value);
@@ -446,12 +513,13 @@ RBD9103::RBD9103(const char* portName, const char* serialPortName)
     createParam(RBD9103_SamplingRateString, asynParamInt32, &this->RBD9103_SamplingRate);
     createParam(RBD9103_StableString, asynParamInt32, &this->RBD9103_Stable);
     createParam(RBD9103_SampleString, asynParamInt32, &this->RBD9103_Sample);
+    createParam(RBD9103_SamplingRateActualString, asynParamInt32, &this->RBD9103_SamplingRateActual);
     createParam(RBD9103_SamplingModeString, asynParamInt32, &this->RBD9103_SamplingMode);
     createParam(RBD9103_InRangeString, asynParamInt32, &this->RBD9103_InRange);
     createParam(RBD9103_NumSamplesString, asynParamInt32, &this->RBD9103_NumSamples);
     createParam(RBD9103_SampleCounterString, asynParamInt32, &this->RBD9103_SampleCounter);
     createParam(RBD9103_StateString, asynParamOctet, &this->RBD9103_State);
-    createParam(RBD9103_UnitsString, asynParamInt32, &this->RBD9103_Units);
+    createParam(RBD9103_CurrentUnitsString, asynParamInt32, &this->RBD9103_CurrentUnits);
     createParam(RBD9103_CurrentString, asynParamFloat64, &this->RBD9103_Current);
     createParam(RBD9103_OffsetNullString, asynParamFloat64, &this->RBD9103_OffsetNull);
     createParam(RBD9103_InputGndString, asynParamInt32, &this->RBD9103_InputGnd);
@@ -476,18 +544,10 @@ RBD9103::RBD9103(const char* portName, const char* serialPortName)
     setStringParam(this->RBD9103_Manufacturer, "RBD Instruments");
 
     this->getDeviceStatus();
+    setIntegerParam(this->RBD9103_OffsetNull, 0);
 
     // Make sure we flush any parameter settings, after fetching status.
     callParamCallbacks();
-
-    epicsThreadOpts opts;
-    opts.priority = epicsThreadPriorityMedium;
-    opts.stackSize = epicsThreadGetStackSize(epicsThreadStackMedium);
-    opts.joinable = 1;
-
-    // Spawn our sampling thread. Make it joinable
-    this->samplingThreadId =
-        epicsThreadCreateOpt("samplingThread", (EPICSTHREADFUNC) samplingThreadC, this, &opts);
 
     epicsAtExit(exitCallbackC, (void*) this);
 }
@@ -497,9 +557,8 @@ RBD9103::~RBD9103(){
 
     // Make sure we clean up our sampling thread here.
     LOG("Shutting down RBD 9103 IOC...");
-    this->alive = false;
     if(this->samplingThreadId != NULL){
-        epicsThreadMustJoin(this->samplingThreadId);
+        this->stopSampling();
     }
     LOG("Done");
 }

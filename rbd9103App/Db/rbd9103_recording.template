@@ -1,0 +1,40 @@
+record(waveform, "$(P)$(R)RecordingFilePath"){
+    field(DTYP, "asynOctetWrite")
+    field(OUT, "@asyn($(PORT),$(ADDR),0)RBD_RECORD_FILE_PATH")
+    field(FTVL, "CHAR")
+    field(NELM, "256")
+}
+
+record(waveform, "$(P)$(R)RecordingFilePath_RBV") {
+    field(DTYP, "asynOctetRead")
+    field(INP, "@asyn($(PORT),$(ADDR),0)RBD_RECORD_FILE_PATH")
+    field(FTVL, "CHAR")
+    field(NELM, "256")
+}
+
+record(bi, "$(P)$(R)FilePathExists_RBV") {
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR),0)RBD_FILE_PATH_EXISTS")
+    field(ZNAM, "False")
+    field(ONAM, "True")
+    field(SCAN, "I/O Intr")
+    field(VAL, "0")
+}
+
+record(bo, "$(P)$(R)Record"){
+    field(DTYP, "asynInt32")
+    field(OUT, "@asyn($(PORT),$(ADDR),0)RBD_RECORD")
+    field(ZNAM, "Idle")
+    field(ONAM, "Recording")
+    field(PINI, "YES")
+    field(VAL, "0")
+}
+
+record(bi, "$(P)$(R)Record_RBV"){
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR),0)RBD_RECORD")
+    field(ZNAM, "Idle")
+    field(ONAM, "Recording")
+    field(SCAN, "I/O Intr")
+    field(VAL, "0")
+}

@@ -184,12 +184,14 @@ record(bo, "$(P)$(R)OffsetNull"){
     field(ZNAM, "Off")
     field(ONAM, "On")
     field(VAL, "0")
+    field(PINI, "YES")
 }
 record(bi, "$(P)$(R)OffsetNull_RBV"){
     field(DTYP, "asynInt32")
     field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_OFFSET_NULL")
     field(ZNAM, "Off")
     field(ONAM, "On")
+    field(VAL, "0")
     field(SCAN, "I/O Intr")
 }
 
@@ -234,6 +236,16 @@ record(ai, "$(P)$(R)SamplingRate_RBV"){
     field(VAL, "0")
 }
 
+record(ai, "$(P)$(R)SamplingRateActual_RBV") {
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_SAMPLING_RATE_ACTUAL")
+    field(LOLO, "20")
+    field(HIHI, "9999")
+    field(EGU, "ms")
+    field(SCAN, "I/O Intr")
+    field(VAL, "0")
+}
+
 record(mbbi, "$(P)$(R)InRange_RBV"){
     field(DTYP, "asynInt32")
     field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_IN_RANGE")
@@ -243,14 +255,16 @@ record(mbbi, "$(P)$(R)InRange_RBV"){
     field(ONST, "Under")
     field(TWVL, "2")
     field(TWST, "Over")
+    field(VAL, "0")
     field(SCAN, "I/O Intr")
 }
 
 
 record(ai, "$(P)$(R)Current_RBV"){
-    field(DTYP, "asynInt32")
+    field(DTYP, "asynFloat64")
     field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_CURRENT")
     field(SCAN, "I/O Intr")
+    field(PREC, "5")
     field(VAL, "0")
 }
 
