@@ -3,7 +3,7 @@
 #- You may have to change default to something else
 #- everywhere it appears in this file
 
-< /epics/common/rocky-dev-netsetup.cmd
+< /epics/common/xf31id1-ioc2-netsetup.cmd
 
 < envPaths
 
@@ -18,7 +18,7 @@ epicsEnvSet("PREFIX", "$(P)$(R)")
 dbLoadDatabase("../../dbd/rbd9103App.dbd",0,0)
 rbd9103App_registerRecordDeviceDriver(pdbbase) 
 
-drvAsynSerialPortConfigure("$(SERIAL_PORT)", "/dev/ttyUSB1", 0, 0, 0)
+drvAsynSerialPortConfigure("$(SERIAL_PORT)", "/dev/ttyUSB0", 0, 0, 0)
 
 # For serial options, see the `Communications and Command Reference` section
 # of the manual. This is the low-speed comms.
@@ -30,7 +30,10 @@ asynSetOption("$(SERIAL_PORT)", 0, "stop", 1)
 asynOctetSetOutputEos("$(SERIAL_PORT)", 0, "\r\n")
 asynOctetSetInputEos("$(SERIAL_PORT)", 0, "\r\n")
 
+
 RBD9103Config("RBD", "$(SERIAL_PORT)")
+asynSetTraceMask("$(PORT)", 0, 0x29)
+
 
 # Load any additional specified databases.
 

@@ -19,6 +19,12 @@ record(stringin, "$(P)$(R)FwVersion_RBV"){
     field(SCAN, "I/O Intr")
 }
 
+record(stringin, "$(P)$(R)State_RBV"){
+    field(DTYP, "asynOctetRead")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_STATE")
+    field(SCAN, "I/O Intr")
+}
+
 record(stringin, "$(P)$(R)Build_RBV"){
     field(DTYP, "asynOctetRead")
     field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_BUILD_DATE")
@@ -290,9 +296,23 @@ record(mbbi, "$(P)$(R)SamplingMode_RBV"){
     field(SCAN, "I/O Intr")
 }
 
+record(ao, "$(P)$(R)NumSamples"){
+    field(DTYP, "asynInt32")
+    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_NUM_SAMPLES")
+    field(PINI, "YES")
+    field(VAL, "0")
+}
+
 record(ai, "$(P)$(R)NumSamples_RBV"){
     field(DTYP, "asynInt32")
     field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_NUM_SAMPLES")
+    field(SCAN, "I/O Intr")
+    field(VAL, "0")
+}
+
+record(ai, "$(P)$(R)SampleCounter_RBV") {
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_SAMPLE_COUNTER")
     field(SCAN, "I/O Intr")
     field(VAL, "0")
 }
@@ -303,22 +323,6 @@ record(bi, "$(P)$(R)Stable_RBV"){
     field(ZNAM, "Not Stable")
     field(ONAM, "Stable")
     field(SCAN, "I/O Intr")
-}
-
-record(calc, "$(P)$(R)Sampling_RBV"){
-    field(DTYP, "Soft Channel")
-    field(INPA, "$(P)$(R)SamplingRate_RBV NPP NMS")
-    field(CALC, "A == 0 ? 0 : 1")
-    field(OOPT, "On Change")
-}
-
-record(bo, "$(P)$(R)SampleOnce"){
-    field(DTYP, "asynInt32")
-    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_SAMPLE_ONCE")
-    field(ZNAM, "Idle")
-    field(ONAM, "Sample")
-    field(PINI, "NO")
-    field(VAL, "0")
 }
 
 

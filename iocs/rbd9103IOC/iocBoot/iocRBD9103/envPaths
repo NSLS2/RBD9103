@@ -1,5 +1,6 @@
 epicsEnvSet("IOC","iocRBD9103")
-epicsEnvSet("TOP","/home/jwlodek/Workspace/epics/utils/rhel8-epics-config/BUILD/support/rbd9103/iocs/rbd9103IOC")
-epicsEnvSet("RBD_9103","/home/jwlodek/Workspace/epics/utils/rhel8-epics-config/BUILD/support/rbd9103/iocs/rbd9103IOC/../..")
+epicsEnvSet("TOP","/epics/modules/RBD9103/iocs/rbd9103IOC")
+epicsEnvSet("RBD_9103","/epics/modules/RBD9103/iocs/rbd9103IOC/../..")
 epicsEnvSet("ASYN","/usr/lib/epics")
+epicsEnvSet("DEVIOCSTATS","/usr/lib/epics")
 epicsEnvSet("EPICS_BASE","/usr/lib/epics")

@@ -30,20 +30,27 @@ using namespace std;
 
 // Warning message formatters
 #define WARN(msg) \
-    asynPrint(pasynUserSelf, ASYN_TRACE_WARN, "WARN | %s::%s: %s\n", driverName, functionName, msg)
+    asynPrint(pasynUserSelf, ASYN_TRACE_WARNING, "WARN | %s::%s: %s\n", driverName, functionName, msg)
 
 #define WARN_ARGS(fmt, ...)                                                            \
-    asynPrint(pasynUserSelf, ASYN_TRACE_WARN, "WARN | %s::%s: " fmt "\n", driverName, \
+    asynPrint(pasynUserSelf, ASYN_TRACE_WARNING, "WARN | %s::%s: " fmt "\n", driverName, \
               functionName, __VA_ARGS__);
 
 // Log message formatters
 #define LOG(msg) \
-    asynPrint(pasynUserSelf, ASYN_TRACE_FLOW, "%s::%s: %s\n", driverName, functionName, msg)
+    asynPrint(pasynUserSelf, ASYN_TRACEIO_DRIVER, "%s::%s: %s\n", driverName, functionName, msg)
 
 #define LOG_ARGS(fmt, ...)                                                                       \
-    asynPrint(pasynUserSelf, ASYN_TRACE_FLOW, "%s::%s: " fmt "\n", driverName, functionName, \
+    asynPrint(pasynUserSelf, ASYN_TRACEIO_DRIVER, "%s::%s: " fmt "\n", driverName, functionName, \
               __VA_ARGS__);
 
+// Log message formatters
+#define DEBUG(msg) \
+    asynPrint(pasynUserSelf, ASYN_TRACE_FLOW, "%s::%s: %s\n", driverName, functionName, msg)
+
+#define DEBUG_ARGS(fmt, ...)                                                                       \
+    asynPrint(pasynUserSelf, ASYN_TRACE_FLOW, "%s::%s: " fmt "\n", driverName, functionName, \
+              __VA_ARGS__);
 
 /**
  * @brief External configuration function for RBD9103.
@@ -106,7 +113,6 @@ string RBD9103::splitRespOnDelim(string resp, const char* delim){
 }
 
 
-
 /**
  * Helper function that reads current device status
  * 
@@ -126,7 +132,7 @@ string RBD9103::splitRespOnDelim(string resp, const char* delim){
  *   P, PID=NEW_DEVICE
  * 
 */
-asynStatus RBD9103::getDeviceStatus(){
+void RBD9103::getDeviceStatus(){
     const char* functionName = "getDeviceStatus";
     pasynOctetSyncIO->flush(this->pasynUserSerialPort);
     size_t nwrite, nread;
@@ -137,7 +143,7 @@ asynStatus RBD9103::getDeviceStatus(){
     this->lock();
 
     // Send &Q to get device status
-    asynStatus status = pasynOctetSyncIO->write(this->pasynUserSerialPort, "&Q", 2, 1, &nwrite);
+    pasynOctetSyncIO->write(this->pasynUserSerialPort, "&Q", 2, 1, &nwrite);
 
     LOG("Reading device status:");
     bool readDeviceID = false;
@@ -145,13 +151,10 @@ asynStatus RBD9103::getDeviceStatus(){
     while(!readDeviceID){
 
         // Device status is several lines long, so we need to 
-        status = pasynOctetSyncIO->read(this->pasynUserSerialPort, ret, sizeof(ret), 1, &nread, &eomReason);
+        pasynOctetSyncIO->read(this->pasynUserSerialPort, ret, sizeof(ret), 1, &nread, &eomReason);
         string statusLine = string(ret);
         LOG(statusLine.c_str());
-        if(status != asynSuccess){
-            ERR("Failed to read device status!");
-            return status;
-        } else if(statusLine.rfind("Firmware", 0) == 0) {
+        if(statusLine.rfind("Firmware", 0) == 0) {
             const char* fwVersion = splitRespOnDelim(statusLine, ": ").c_str();
             setStringParam(this->RBD9103_FwVersion, fwVersion);
         } else if(statusLine.rfind("Build", 0) == 0) {
@@ -175,7 +178,7 @@ asynStatus RBD9103::getDeviceStatus(){
             }
         } else if(statusLine.rfind("F, Filter", 0) == 0) {
             const char* filter = splitRespOnDelim(statusLine, "=").c_str();
-            setIntegerParam(this->RBD9103_Filter, atoi(filter) / 2);
+            setIntegerParam(this->RBD9103_Filter, int(sqrt(atoi(filter))));
         } else if(statusLine.rfind("V, FormatLen", 0) == 0) {
             const char* formatLen = splitRespOnDelim(statusLine, "=").c_str();
             this->setIntegerParam(this->RBD9103_NumDigits, atoi(formatLen));
@@ -190,12 +193,7 @@ asynStatus RBD9103::getDeviceStatus(){
                 setIntegerParam(this->RBD9103_InputGnd, RBD_ON);
             }
         } else if(statusLine.rfind("Q, State", 0) == 0) {
-            string state = splitRespOnDelim(statusLine, "=");
-            if(state == "MEASURE") {
-                setIntegerParam(this->RBD9103_Sampling, RBD_ON);
-            } else {
-                setIntegerParam(this->RBD9103_Sampling, RBD_OFF);
-            }
+            setStringParam(RBD9103_State, splitRespOnDelim(statusLine, "=").c_str());
         } else if(statusLine.rfind("P, PID", 0) == 0) {
             const char* deviceId = splitRespOnDelim(statusLine, "=").c_str();
             setStringParam(this->RBD9103_DeviceID, deviceId);
@@ -205,8 +203,36 @@ asynStatus RBD9103::getDeviceStatus(){
     // unlock to allow for aynchronous device access.
     this->unlock();
     callParamCallbacks();
+}
 
-    return asynSuccess;
+void RBD9103::getModelNumber(){
+    const char* functionName = "getModelNumber";
+    pasynOctetSyncIO->flush(this->pasynUserSerialPort);
+    size_t nwrite, nread;
+    int eomReason;
+
+    // Lock the mutex for the driver so we can guarantee that any reads are going to be coming from
+    // the output of our command.
+    this->lock();
+
+    // Send &Q to get device status
+    asynStatus status = pasynOctetSyncIO->write(this->pasynUserSerialPort, "&K", 2, 1, &nwrite);
+
+    LOG("Reading device status:");
+    bool readModelNumber = false;
+    char ret[64];
+    while(!readModelNumber){
+        if(string(ret).rfind("&K, Key=")){
+            const char* model = splitRespOnDelim(string(ret), "=").c_str();
+            setStringParam(RBD9103_Model, model);
+            LOG_ARGS("Connected to ammeter: %s", model);
+            readModelNumber = true;
+        } else {
+            WARN("Recieved unexpected response for model number query. Trying again...");
+        }
+    }
+    this->unlock();
+    callParamCallbacks();
 }
 
 
@@ -313,10 +339,11 @@ void RBD9103::samplingThread(){
                 }
             }
             callParamCallbacks();
+        } else {
+            epicsThreadSleep(0.05);
         }
-    } else {
-        epicsThreadSleep(0.05);
-    }
+
+    } 
 }
 
 
@@ -352,7 +379,7 @@ asynStatus RBD9103::writeInt32(asynUser* pasynUser, epicsInt32 value){
         if(value == 0) {
             setSamplingRate(0);
             getDeviceStatus();
-        } else return asynSuccess;
+        }
     } else if (function == RBD9103_Bias) {
         snprintf(cmd, sizeof(cmd), "&B%d", value);
     } else if (function == RBD9103_Range) {
@@ -360,7 +387,7 @@ asynStatus RBD9103::writeInt32(asynUser* pasynUser, epicsInt32 value){
         // Setting range disables offset null
         setIntegerParam(RBD9103_OffsetNull, 0);
     } else if (function == RBD9103_Filter) {
-        snprintf(cmd, sizeof(cmd), "&F%03d", value * 2);
+        snprintf(cmd, sizeof(cmd), "&F%03d", pow(value, 2));
     } else if (function == RBD9103_InputGnd) {
         snprintf(cmd, sizeof(cmd), "&G%d", value);
     } else if (function == RBD9103_OffsetNull) {
@@ -377,7 +404,7 @@ asynStatus RBD9103::writeInt32(asynUser* pasynUser, epicsInt32 value){
         }
     }
 
-    if(strlen(cmd) > 0){
+    if(cmd != NULL && strlen(cmd) > 0) {
         writeReadCmd(cmd);
         getDeviceStatus();
     }
@@ -419,15 +446,17 @@ RBD9103::RBD9103(const char* portName, const char* serialPortName)
     createParam(RBD9103_SamplingRateString, asynParamInt32, &this->RBD9103_SamplingRate);
     createParam(RBD9103_StableString, asynParamInt32, &this->RBD9103_Stable);
     createParam(RBD9103_SampleString, asynParamInt32, &this->RBD9103_Sample);
-    createParam(RBD9103_SamplingString, asynParamInt32, &this->RBD9103_Sampling);
+    createParam(RBD9103_SamplingModeString, asynParamInt32, &this->RBD9103_SamplingMode);
+    createParam(RBD9103_InRangeString, asynParamInt32, &this->RBD9103_InRange);
     createParam(RBD9103_NumSamplesString, asynParamInt32, &this->RBD9103_NumSamples);
+    createParam(RBD9103_SampleCounterString, asynParamInt32, &this->RBD9103_SampleCounter);
+    createParam(RBD9103_StateString, asynParamOctet, &this->RBD9103_State);
     createParam(RBD9103_UnitsString, asynParamInt32, &this->RBD9103_Units);
     createParam(RBD9103_CurrentString, asynParamFloat64, &this->RBD9103_Current);
     createParam(RBD9103_OffsetNullString, asynParamFloat64, &this->RBD9103_OffsetNull);
     createParam(RBD9103_InputGndString, asynParamInt32, &this->RBD9103_InputGnd);
     createParam(RBD9103_RangeString, asynParamInt32, &this->RBD9103_Range);
     createParam(RBD9103_RangeActualString, asynParamInt32, &this->RBD9103_RangeActual);
-    createParam(RBD9103_SampleOnceString, asynParamInt32, &this->RBD9103_SampleOnce);
     createParam(RBD9103_BiasString, asynParamInt32, &this->RBD9103_Bias);
     createParam(RBD9103_FilterString, asynParamInt32, &this->RBD9103_Filter);
     createParam(RBD9103_AutoCalString, asynParamInt32, &this->RBD9103_AutoCal);
@@ -441,19 +470,10 @@ RBD9103::RBD9103(const char* portName, const char* serialPortName)
     setStringParam(this->RBD9103_DrvVersion, RBD9103_DRIVER_VERSION);
 
     // Get the model number
-    string modelCmdResp = writeReadCmd("&K");
-    if (modelResp == "") {
-        ERR("Failed to get model number");
-        return;
-    } else {
-        // Response echos back &K and then follows with Key=$MODEL,
-        // so split on the equal sign to get the model number alone.
-        setStringParam(this->RBD9103_Model, this->splitRespOnDelim("=").c_str());
-    }
+    this->getModelNumber();
 
     setStringParam(this->RBD9103_DeviceDesc, "PicoAmmeter");
     setStringParam(this->RBD9103_Manufacturer, "RBD Instruments");
-    LOG_ARGS("Connected to ammeter: %s", model.c_str());
 
     this->getDeviceStatus();
 
