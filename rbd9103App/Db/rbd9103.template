@@ -284,6 +284,7 @@ record(bi, "$(P)$(R)Sample_RBV"){
     field(ZNAM, "Idle")
     field(ONAM, "Sampling")
     field(SCAN, "I/O Intr")
+    field(VAL, "0")
 }
 
 record(mbbo, "$(P)$(R)SamplingMode"){
@@ -295,6 +296,7 @@ record(mbbo, "$(P)$(R)SamplingMode"){
     field(ONST, "Multiple")
     field(TWVL, "2")
     field(TWST, "Continuous")
+    field(PINI, "YES")
     field(VAL, "0")
 }
 
@@ -307,6 +309,7 @@ record(mbbi, "$(P)$(R)SamplingMode_RBV"){
     field(ONST, "Multiple")
     field(TWVL, "2")
     field(TWST, "Continuous")
+    field(VAL, "0")
     field(SCAN, "I/O Intr")
 }
 

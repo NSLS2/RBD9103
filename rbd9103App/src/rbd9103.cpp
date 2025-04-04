@@ -472,6 +472,7 @@ asynStatus RBD9103::writeInt32(asynUser* pasynUser, epicsInt32 value){
     }
 
     if(strlen(cmd) > 0) {
+        LOG_ARGS("Sending command: %s", cmd);
         writeReadCmd(cmd);
         getDeviceStatus();
     }
@@ -521,7 +522,7 @@ RBD9103::RBD9103(const char* portName, const char* serialPortName)
     createParam(RBD9103_StateString, asynParamOctet, &this->RBD9103_State);
     createParam(RBD9103_CurrentUnitsString, asynParamInt32, &this->RBD9103_CurrentUnits);
     createParam(RBD9103_CurrentString, asynParamFloat64, &this->RBD9103_Current);
-    createParam(RBD9103_OffsetNullString, asynParamFloat64, &this->RBD9103_OffsetNull);
+    createParam(RBD9103_OffsetNullString, asynParamInt32, &this->RBD9103_OffsetNull);
     createParam(RBD9103_InputGndString, asynParamInt32, &this->RBD9103_InputGnd);
     createParam(RBD9103_RangeString, asynParamInt32, &this->RBD9103_Range);
     createParam(RBD9103_RangeActualString, asynParamInt32, &this->RBD9103_RangeActual);
