@@ -181,7 +181,7 @@ void RBD9103::getDeviceStatus(){
             }
         } else if(statusLine.rfind("F, Filter", 0) == 0) {
             const char* filter = splitRespOnDelim(statusLine, "=").c_str();
-            setIntegerParam(this->RBD9103_Filter, int(sqrt(atoi(filter))));
+            setIntegerParam(this->RBD9103_Filter, int(log2(atoi(filter))));
         } else if(statusLine.rfind("V, FormatLen", 0) == 0) {
             const char* formatLen = splitRespOnDelim(statusLine, "=").c_str();
             this->setIntegerParam(this->RBD9103_NumDigits, atoi(formatLen));
@@ -296,6 +296,12 @@ const char* RBD9103::getStrFromUnits(RBDUnits_t units){
     return "";
 }
 
+static uint64_t getTimestampMS() {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t)ts.tv_sec * 1000 + (uint64_t)ts.tv_nsec / 1000000;
+}
+
 
 static vector<string> split(string input, const char* delim) {
     vector<string> result;
@@ -314,7 +320,7 @@ static vector<string> split(string input, const char* delim) {
 void RBD9103::appendCSV(double current, double avgCurrent, RBDRange_t range, RBDUnits_t currentUnits, int stable){
     const char* functionName = "appendCSV";
     if(this->csvFile != NULL){
-        fprintf(this->csvFile, "%ld,%d,%s,%f,%f,%s\n", time(NULL), stable, getStrFromRangeSetting(range), current, avgCurrent, getStrFromUnits(currentUnits));
+        fprintf(this->csvFile, "%llu,%d,%s,%f,%f,%s\n", getTimestampMS(), stable, getStrFromRangeSetting(range), current, avgCurrent, getStrFromUnits(currentUnits));
         fflush(this->csvFile);
     } else {
         ERR("CSV file not open!");
@@ -475,7 +481,6 @@ void RBD9103::samplingThread(){
     setDoubleParam(RBD9103_SumCurrent, 0.0);
     setDoubleParam(RBD9103_AvgCurrent, 0.0);
     setIntegerParam(RBD9103_SampleCounter, 0);
-    setIntegerParam(RBD9103_Error, 0); // Clear errors if we got to this point.
 
     while(this->alive) {
         getIntegerParam(RBD9103_Sample, &sampling);
@@ -548,8 +553,13 @@ asynStatus RBD9103::writeOctet(asynUser* pasynUser, const char* value, size_t nC
     const char* functionName = "writeOctet";
     asynStatus status = asynSuccess;
     int function = pasynUser->reason;
+    int addr = 0;
 
-    if (function == RBD9103_DirectoryPath) {
+    status = getAddress(pasynUser, &addr); if (status != asynSuccess) return(status);
+    // Set the parameter in the parameter library.
+    status = (asynStatus)setStringParam(addr, function, (char *)value);
+
+    if (function == RBD9103_DirectoryPath && nChars > 0) {
         // Check if the directory exists and is writable
         struct stat info;
         LOG_ARGS("Checking if path %s exists and is writable", value);
@@ -570,7 +580,8 @@ asynStatus RBD9103::writeOctet(asynUser* pasynUser, const char* value, size_t nC
         setStringParam(function, value);
     }
 
-    callParamCallbacks();
+    callParamCallbacks(addr);
+    *nActual = nChars;
     return status;
 }
 
@@ -639,7 +650,7 @@ asynStatus RBD9103::writeInt32(asynUser* pasynUser, epicsInt32 value){
         // Setting range disables offset null
         setIntegerParam(RBD9103_OffsetNull, 0);
     } else if (function == RBD9103_Filter) {
-        snprintf(cmd, sizeof(cmd), "&F%03d", pow(value, 2));
+        snprintf(cmd, sizeof(cmd), "&F%03d", int(pow(2, value)));
     } else if (function == RBD9103_InputGnd) {
         snprintf(cmd, sizeof(cmd), "&G%d", value);
     } else if (function == RBD9103_OffsetNull) {

@@ -61,7 +61,6 @@ static const char* driverName = "RBD9103";
 #define RBD9103_FileNameString "RBD_FILENAME"
 #define RBD9103_DirExistsAndWritableString "RBD_DIR_EXISTS_WRITABLE"
 #define RBD9103_InputGndString "RBD_INPUT_GND"
-#define RBD9103_ErrorString "RBD_ERROR"
 
 #define TIMEOUT 5
 
@@ -102,11 +101,6 @@ typedef enum RBD_SAMPLING_MODE {
     RBD_SAMPLING_MODE_MULTIPLE = 1,
     RBD_SAMPLING_MODE_CONTINUOUS = 2,
 } RBDSamplingMode_t;
-
-typedef enum RBD_ERROR {
-    RBD_OK = 0,
-    RBD_ERROR = 1,
-} RBDError_t;
 
 typedef enum RBD_RANGE_STATE {
     RBD_RANGE_STATE_OK = 0,
@@ -156,7 +150,6 @@ private:
     int RBD9103_Sample;
     int RBD9103_State;
     int RBD9103_SamplingMode;
-    int RBD9103_Error;
     int RBD9103_SampleCounter;
     int RBD9103_NumSamples;
     int RBD9103_CurrentUnits;
