@@ -11,6 +11,7 @@ include $(TOP)/configure/CONFIG
 # Create and install (or just install) into <top>/db
 # databases, templates, substitutions like this
 DB += rbd9103.template
+DB += rbd9103_recording.template
 DB += rbd9103.substitutions
 
 #----------------------------------------------------

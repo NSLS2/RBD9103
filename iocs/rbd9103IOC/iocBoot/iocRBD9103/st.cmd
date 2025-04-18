@@ -18,7 +18,7 @@ epicsEnvSet("PREFIX", "$(P)$(R)")
 dbLoadDatabase("../../dbd/rbd9103App.dbd",0,0)
 rbd9103App_registerRecordDeviceDriver(pdbbase) 
 
-drvAsynSerialPortConfigure("$(SERIAL_PORT)", "/dev/ttyUSB0", 0, 0, 0)
+drvAsynSerialPortConfigure("$(SERIAL_PORT)", "/dev/rbd9103_AQ01SPJH", 0, 0, 0)
 
 # For serial options, see the `Communications and Command Reference` section
 # of the manual. This is the low-speed comms.
@@ -40,7 +40,7 @@ asynSetTraceMask("$(PORT)", 0, 0x29)
 ## Load record instances
 dbLoadTemplate("$(RBD_9103)/db/rbd9103.substitutions")
 
-dbLoadTemplate("$(DEVIOCSTATS)/db/iocAdminSoft.db", "IOC=$(PREFIX)")
+dbLoadRecords"$(DEVIOCSTATS)/db/iocAdminSoft.db", "IOC=$(PREFIX)")
 
 iocInit()
 

@@ -195,6 +195,15 @@ record(bi, "$(P)$(R)OffsetNull_RBV"){
     field(SCAN, "I/O Intr")
 }
 
+record(bi, "$(P)$(R)Error_RBV"){
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_ERROR")
+    field(ZNAM, "OK")
+    field(ONAM, "ERROR")
+    field(VAL, "0")
+    field(SCAN, "I/O Intr")
+}
+
 # record(bo, "$(P)$(R)HighSpeed"){
 #     field(DTYP, "asynInt32")
 #     field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_HIGH_SPEED")
@@ -219,8 +228,10 @@ record(bi, "$(P)$(R)OffsetNull_RBV"){
 record(ao, "$(P)$(R)SamplingRate"){
     field(DTYP, "asynInt32")
     field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_SAMPLING_RATE")
-    field(LOLO, "20")
-    field(HIHI, "9999")
+    field(LOW, "20.0")
+    field(LOLO, "20.0")
+    field(HIGH, "9999.0")
+    field(HIHI, "9999.0")
     field(EGU, "ms")
     field(PINI, "YES")
     field(VAL, "0")
@@ -230,7 +241,9 @@ record(ai, "$(P)$(R)SamplingRate_RBV"){
     field(DTYP, "asynInt32")
     field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_SAMPLING_RATE")
     field(LOLO, "20")
+    field(LOW, "20")
     field(HIHI, "9999")
+    field(HIGH, "9999")
     field(EGU, "ms")
     field(SCAN, "I/O Intr")
     field(VAL, "0")
@@ -241,6 +254,8 @@ record(ai, "$(P)$(R)SamplingRateActual_RBV") {
     field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_SAMPLING_RATE_ACTUAL")
     field(LOLO, "20")
     field(HIHI, "9999")
+    field(LOW, "20")
+    field(HIGH, "9999")
     field(EGU, "ms")
     field(SCAN, "I/O Intr")
     field(VAL, "0")
@@ -339,6 +354,7 @@ record(bi, "$(P)$(R)Stable_RBV"){
     field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_STABLE")
     field(ZNAM, "Not Stable")
     field(ONAM, "Stable")
+    field(VAL, "0")
     field(SCAN, "I/O Intr")
 }
 
@@ -383,18 +399,6 @@ record(mbbi, "$(P)$(R)Filter_RBV"){
     field(SCAN, "I/O Intr")
 }
 
-record(mbbo, "$(P)$(R)CurrentUnits") {
-    field(DTYP, "asynInt32")
-    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_CURRENT_UNITS")
-    field(ZRVL, "0")
-    field(ZRST, "nA")
-    field(ONVL, "1")
-    field(ONST, "uA")
-    field(TWVL, "2")
-    field(TWST, "mA")
-    field(VAL, "0")
-}
-
 record(mbbi, "$(P)$(R)CurrentUnits_RBV") {
     field(DTYP, "asynInt32")
     field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_CURRENT_UNITS")
@@ -404,6 +408,7 @@ record(mbbi, "$(P)$(R)CurrentUnits_RBV") {
     field(ONST, "uA")
     field(TWVL, "2")
     field(TWST, "mA")
+    field(VAL, "0")
     field(SCAN, "I/O Intr")
 }
 
@@ -412,6 +417,37 @@ record(ai, "$(P)$(R)AvgCurrent_RBV") {
     field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_AVG_CURRENT")
     field(SCAN, "I/O Intr")
     field(VAL, "0")
+}
+
+record(ai, "$(P)$(R)SumCurrent_RBV") {
+    field(DTYP, "asynFloat64")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_SUM_CURRENT")
+    field(SCAN, "I/O Intr")
+    field(VAL, "0")
+}
+
+record(mbbo, "$(P)$(R)AvgCurrentUnits"){
+    field(DTYP, "asynInt32")
+    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_AVG_CURRENT_UNITS")
+    field(ZRVL, "0")
+    field(ZRST, "nA")
+    field(ONVL, "1")
+    field(ONST, "uA")
+    field(TWVL, "2")
+    field(TWST, "mA")
+    field(PINI, "YES")
+    field(VAL, "0")
+}
+record(mbbi, "$(P)$(R)AvgCurrentUnits_RBV") {
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_AVG_CURRENT_UNITS")
+    field(ZRVL, "0")
+    field(ZRST, "nA")
+    field(ONVL, "1")
+    field(ONST, "uA")
+    field(TWVL, "2")
+    field(TWST, "mA")
+    field(SCAN, "I/O Intr")
 }
 
 

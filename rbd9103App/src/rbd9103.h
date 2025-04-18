@@ -52,7 +52,16 @@ static const char* driverName = "RBD9103";
 #define RBD9103_BuildDateString "RBD_BUILD_DATE"
 #define RBD9103_DeviceDescString "RBD_DEVICE_DESC"
 #define RBD9103_ManufacturerString "RBD_MANUFACTURER"
+#define RBD9103_AvgCurrentString "RBD_AVG_CURRENT"
+#define RBD9103_AvgCurrentUnitsString "RBD_AVG_CURRENT_UNITS"
+#define RBD9103_AvgOnlyStableString "RBD_AVG_ONLY_STABLE"
+#define RBD9103_SumCurrentString "RBD_SUM_CURRENT"
+#define RBD9103_RecordString "RBD_RECORD"
+#define RBD9103_DirectoryPathString "RBD_DIRECTORY_PATH"
+#define RBD9103_FileNameString "RBD_FILENAME"
+#define RBD9103_DirExistsAndWritableString "RBD_DIR_EXISTS_WRITABLE"
 #define RBD9103_InputGndString "RBD_INPUT_GND"
+#define RBD9103_ErrorString "RBD_ERROR"
 
 #define TIMEOUT 5
 
@@ -94,6 +103,17 @@ typedef enum RBD_SAMPLING_MODE {
     RBD_SAMPLING_MODE_CONTINUOUS = 2,
 } RBDSamplingMode_t;
 
+typedef enum RBD_ERROR {
+    RBD_OK = 0,
+    RBD_ERROR = 1,
+} RBDError_t;
+
+typedef enum RBD_RANGE_STATE {
+    RBD_RANGE_STATE_OK = 0,
+    RBD_RANGE_STATE_UNDER = 1,
+    RBD_RANGE_STATE_OVER = 2,
+} RBDRangeState_t;
+
 using namespace std;
 
 class RBD9103 : public asynPortDriver
@@ -103,6 +123,7 @@ public:
     ~RBD9103();
     string writeReadCmd(const char* cmd);
     virtual asynStatus writeInt32(asynUser* pasynUser, epicsInt32 value);
+    virtual asynStatus writeOctet(asynUser* pasynUser, const char* value, size_t nChars, size_t* nActual);
     void samplingThread();
 protected:
 private:
@@ -116,7 +137,15 @@ private:
     string splitRespOnDelim(string resp, const char* delim);
     void parseSampling(string rawSampling);
     void setSamplingRate(int rate);
+    void appendCSV(double current, double avgCurrent, RBDRange_t range, RBDUnits_t currentUnits, int stable);
     RBDRange_t getRangeSettingFromStr(string rangeStr);
+    const char* getStrFromRangeSetting(RBDRange_t range);
+    RBDUnits_t getUnitsFromStr(string unitsStr);
+    const char* getStrFromUnits(RBDUnits_t units);
+    void openCSV(const char* filePath);
+    void closeCSV();
+
+    FILE* csvFile = NULL;
 
     int RBD9103_Model;
     int RBD9103_DrvVersion;
@@ -127,6 +156,7 @@ private:
     int RBD9103_Sample;
     int RBD9103_State;
     int RBD9103_SamplingMode;
+    int RBD9103_Error;
     int RBD9103_SampleCounter;
     int RBD9103_NumSamples;
     int RBD9103_CurrentUnits;
@@ -144,6 +174,14 @@ private:
     int RBD9103_FwVersion;
     int RBD9103_BuildDate;
     int RBD9103_DeviceDesc;
+    int RBD9103_AvgCurrent;
+    int RBD9103_SumCurrent;
+    int RBD9103_AvgCurrentUnits;
+    int RBD9103_AvgOnlyStable;
+    int RBD9103_Record;
+    int RBD9103_FileName;
+    int RBD9103_DirectoryPath;
+    int RBD9103_DirExistsAndWritable;
     int RBD9103_Manufacturer;
 
     #define FIRST_RBD9103_PARAM RBD9103_Model

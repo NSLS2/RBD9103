@@ -13,6 +13,9 @@
 #include <epicsTime.h>
 #include <iocsh.h>
 
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include <asynOctetSyncIO.h>
 
 #include "rbd9103.h"
@@ -208,29 +211,17 @@ void RBD9103::getDeviceStatus(){
 void RBD9103::getModelNumber(){
     const char* functionName = "getModelNumber";
     pasynOctetSyncIO->flush(this->pasynUserSerialPort);
-    size_t nwrite, nread;
-    int eomReason;
 
     // Lock the mutex for the driver so we can guarantee that any reads are going to be coming from
     // the output of our command.
     this->lock();
 
-    // Send &Q to get device status
-    asynStatus status = pasynOctetSyncIO->write(this->pasynUserSerialPort, "&K", 2, 1, &nwrite);
+    string modelStr = writeReadCmd("&K");
 
-    LOG("Reading device status:");
-    bool readModelNumber = false;
-    char ret[64];
-    while(!readModelNumber){
-        if(string(ret).rfind("&K, Key=")){
-            const char* model = splitRespOnDelim(string(ret), "=").c_str();
-            setStringParam(RBD9103_Model, model);
-            LOG_ARGS("Connected to ammeter: %s", model);
-            readModelNumber = true;
-        } else {
-            WARN("Recieved unexpected response for model number query. Trying again...");
-        }
-    }
+    const char* model = splitRespOnDelim(modelStr, "=").c_str();
+    setStringParam(RBD9103_Model, model);
+    LOG_ARGS("Connected to ammeter: %s", model);
+
     this->unlock();
     callParamCallbacks();
 }
@@ -260,6 +251,52 @@ RBDRange_t RBD9103::getRangeSettingFromStr(string rangeStr){
     return RBD_RNG_AUTO;
 }
 
+const char* RBD9103::getStrFromRangeSetting(RBDRange_t range){
+    switch(range) {
+        case RBD_RNG_AUTO:
+            return "AutoR";
+        case RBD_RNG_2N:
+            return "002nA";
+        case RBD_RNG_20N:
+            return "020nA";
+        case RBD_RNG_200N:
+            return "200nA";
+        case RBD_RNG_2U:
+            return "002uA";
+        case RBD_RNG_20U:
+            return "020uA";
+        case RBD_RNG_200U:
+            return "200uA";
+        case RBD_RNG_2M:
+            return "002mA";
+    }
+    return "";
+}
+
+RBDUnits_t RBD9103::getUnitsFromStr(string unitsStr){
+    if (unitsStr == "nA") {
+        return RBD_UNT_NA;
+    } else if (unitsStr == "uA") {
+        return RBD_UNT_UA;
+    } else if (unitsStr == "mA") {
+        return RBD_UNT_MA;
+    }
+    return RBD_UNT_NA;
+}
+
+const char* RBD9103::getStrFromUnits(RBDUnits_t units){
+    switch(units) {
+        case RBD_UNT_NA:
+            return "nA";
+        case RBD_UNT_UA:
+            return "uA";
+        case RBD_UNT_MA:
+            return "mA";
+    }
+    return "";
+}
+
+
 static vector<string> split(string input, const char* delim) {
     vector<string> result;
     size_t pos = 0;
@@ -274,65 +311,146 @@ static vector<string> split(string input, const char* delim) {
 }
 
 
+void RBD9103::appendCSV(double current, double avgCurrent, RBDRange_t range, RBDUnits_t currentUnits, int stable){
+    const char* functionName = "appendCSV";
+    if(this->csvFile != NULL){
+        fprintf(this->csvFile, "%ld,%d,%s,%f,%f,%s\n", time(NULL), stable, getStrFromRangeSetting(range), current, avgCurrent, getStrFromUnits(currentUnits));
+        fflush(this->csvFile);
+    } else {
+        ERR("CSV file not open!");
+    }
+}
+
+void RBD9103::openCSV(const char* filename){
+    const char* functionName = "openCSV";
+    if(this->csvFile != NULL){
+        fclose(this->csvFile);
+    }
+    this->csvFile = fopen(filename, "w");
+    if(this->csvFile == NULL){
+        ERR_ARGS("Failed to open CSV file: %s", filename);
+    } else {
+        fprintf(this->csvFile, "Timestamp,Stable,Range,Current,AvgCurrent,Units\n");
+        fflush(this->csvFile);
+    }
+    LOG_ARGS("Opened CSV file: %s", filename);
+}
+
+void RBD9103::closeCSV(){
+    const char* functionName = "closeCSV";
+    if(this->csvFile != NULL){
+        fclose(this->csvFile);
+    }
+    this->csvFile = NULL;
+    LOG("Closed CSV file");
+}
+
+
 /**
  * Parse single sampling response
 */
 void RBD9103::parseSampling(string rawSampling){
     const char* functionName = "parseSampling";
 
+    RBDUnits_t avgCurrentUnits, currentUnits;
+    RBDOnOff_t avgOnlyStable;
+    RBDRange_t range;
+    double avgCurrent, sumCurrent;
+    getDoubleParam(RBD9103_SumCurrent, &sumCurrent);
+    getIntegerParam(RBD9103_AvgOnlyStable, (int*) &avgOnlyStable);
+    getIntegerParam(RBD9103_AvgCurrentUnits, (int*) &currentUnits);
+
     // Sampling response format:
     // &S=,Range=002nA,+0.0008,nA
     LOG_ARGS("Parsing sampling response: %s", rawSampling.c_str());
 
-    int sampleCounter;
-    getIntegerParam(RBD9103_SampleCounter, &sampleCounter);
-    setIntegerParam(RBD9103_SampleCounter, sampleCounter + 1);
+    int stable, inRange;
+    double current;
 
     vector<string> components = split(rawSampling, ",");
     for(int i = 0; i < components.size(); i++){
         switch(i) {
             case 0:
-                switch(components[i][2]){
+                switch(components[i][2]) {
                     case '=':
-                        setIntegerParam(this->RBD9103_Stable, 1);
+                        stable = 1;
+                        inRange = RBD_RANGE_STATE_OK;
+                        break;
+                    case '>':
+                        stable = 0;
+                        inRange = RBD_RANGE_STATE_OVER;
+                        break;
+                    case '<':
+                        stable = 0;
+                        inRange = RBD_RANGE_STATE_UNDER;
                         break;
                     default:
-                        setIntegerParam(this->RBD9103_Stable, 0);
+                        stable = 0;
+                        inRange = RBD_RANGE_STATE_OK;
                         break;
                 }
+
+                setIntegerParam(this->RBD9103_Stable, stable);
+                setIntegerParam(this->RBD9103_InRange, inRange);
                 break;
             case 1:
             {
-                string range = components[i].substr(components[i].find("=") + 1, components[i].length());
-                setIntegerParam(this->RBD9103_Range, getRangeSettingFromStr(range));
+                string rangeStr = components[i].substr(components[i].find("=") + 1, components[i].length());
+                range = getRangeSettingFromStr(rangeStr);
+                setIntegerParam(this->RBD9103_Range, range);
                 break;
             }
             case 2:
             {
-                const char* current = components[i].c_str();
-                if (current[0] == '+'){
-                    current = current + 1;
+                const char* currentStr = components[i].c_str();
+                if (currentStr[0] == '+'){
+                    currentStr = currentStr + 1;
                 }
-                setDoubleParam(this->RBD9103_Current, atof(current));
+                current = atof(currentStr);
+                setDoubleParam(this->RBD9103_Current, current);
                 break;
             }
             case 3:
             {
-                const char* units = components[i].c_str();
-                if (strcmp(units, "nA") == 0){
-                    setIntegerParam(this->RBD9103_CurrentUnits, RBD_UNT_NA);
-                } else if(strcmp(units, "uA") == 0) {
-                    setIntegerParam(this->RBD9103_CurrentUnits, RBD_UNT_UA);
-                } else if(strcmp(units, "mA") == 0) {
-                    setIntegerParam(this->RBD9103_CurrentUnits, RBD_UNT_MA);
-                } else {
-                    ERR_ARGS("Recieved unexpected unit type: %s", units);
-                }
+                string unitsStr = components[i].c_str();
+                currentUnits = getUnitsFromStr(unitsStr);
+                setIntegerParam(this->RBD9103_CurrentUnits, currentUnits);
                 break;
             }
         }
     }
 
+    // Only perform averaging/saving if stable or explicitly told do
+    // average everything.
+    if(stable == 1 || avgOnlyStable == RBD_OFF){
+
+        // Increment our sample counter
+        int sampleCounter;
+        getIntegerParam(RBD9103_SampleCounter, &sampleCounter);
+        sampleCounter++;
+        setIntegerParam(RBD9103_SampleCounter, sampleCounter);
+
+        // Scale current to the correct units. For example, if current reading is 0.0008 nA,
+        // and we are requesting an mA scale, then we need to divide by 1000000. To do this,
+        // we can take the int representation of nA (0) and subtract the int representation of mA (2)
+        // and then multiply our current by 1000 to that power.
+        int unitsMultiplier = (int) currentUnits - (int) avgCurrentUnits;
+        double scaledCurrent = current * pow(1000, unitsMultiplier);
+
+        sumCurrent += scaledCurrent;
+        avgCurrent = sumCurrent / (double)sampleCounter;
+        setDoubleParam(RBD9103_AvgCurrent, avgCurrent);
+        setDoubleParam(RBD9103_SumCurrent, sumCurrent);
+        
+        // Append to CSV file, if it is open
+        RBDOnOff_t recording;
+        getIntegerParam(RBD9103_Record, (int*) &recording);
+        if(recording == RBD_ON){
+            appendCSV(current, avgCurrent, range, currentUnits, stable);
+        }
+    } else {
+        WARN("Skipping average calculation and saving to csv file because sample is not stable");
+    }
 
     callParamCallbacks();
 }
@@ -350,12 +468,20 @@ void RBD9103::samplingThread(){
     int eomReason;
     int numSamples, sampleCounter;
     RBDSamplingMode_t samplingMode;
+    RBDUnits_t avgCurrentUnits;
+    double sumCurrent;
     asynStatus status;
+
+    setDoubleParam(RBD9103_SumCurrent, 0.0);
+    setDoubleParam(RBD9103_AvgCurrent, 0.0);
+    setIntegerParam(RBD9103_SampleCounter, 0);
+    setIntegerParam(RBD9103_Error, 0); // Clear errors if we got to this point.
 
     while(this->alive) {
         getIntegerParam(RBD9103_Sample, &sampling);
         getIntegerParam(RBD9103_SamplingRateActual, &samplingRateMs);
         getIntegerParam(RBD9103_SamplingMode, (int*) &samplingMode);
+
         if(sampling == 1 && samplingMode != RBD_SAMPLING_MODE_SINGLE && samplingRateMs >= 20 && samplingRateMs <= 9999){
             getIntegerParam(RBD9103_NumSamples, &numSamples);
 
@@ -371,9 +497,13 @@ void RBD9103::samplingThread(){
                 } else{
                     string samplingResp = string(ret);
                     parseSampling(samplingResp);
+
                     getIntegerParam(RBD9103_SampleCounter, &sampleCounter);
-                    if(samplingMode == RBD_SAMPLING_MODE_MULTIPLE && sampleCounter == numSamples){
-                        setIntegerParam(RBD9103_Sample, 0);
+
+                    if(samplingMode == RBD_SAMPLING_MODE_MULTIPLE && sampleCounter >= numSamples){
+                        setIntegerParam(RBD9103_Sample, RBD_OFF);
+                        setIntegerParam(RBD9103_Record, RBD_OFF);
+                        this->closeCSV();
                     }
                 }
             }
@@ -381,8 +511,7 @@ void RBD9103::samplingThread(){
         } else {
             epicsThreadSleep(0.05);
         }
-
-    } 
+    }
 }
 
 void RBD9103::startSampling(){
@@ -415,6 +544,37 @@ void RBD9103::setSamplingRate(int rate){
 }
 
 
+asynStatus RBD9103::writeOctet(asynUser* pasynUser, const char* value, size_t nChars, size_t* nActual){
+    const char* functionName = "writeOctet";
+    asynStatus status = asynSuccess;
+    int function = pasynUser->reason;
+
+    if (function == RBD9103_DirectoryPath) {
+        // Check if the directory exists and is writable
+        struct stat info;
+        LOG_ARGS("Checking if path %s exists and is writable", value);
+
+        if (stat(value, &info) != 0 || !(info.st_mode & S_IFDIR)) {
+            ERR_ARGS("Path %s does not exist or is not a directory", value);
+            setIntegerParam(RBD9103_DirExistsAndWritable, 0);
+            status = asynError;
+        } else if (access(value, W_OK) != 0) {
+            ERR_ARGS("Path %s is not writable", value);
+            setIntegerParam(RBD9103_DirExistsAndWritable, 0);
+            status = asynError;
+        } else {
+            setStringParam(RBD9103_DirectoryPath, value);
+            setIntegerParam(RBD9103_DirExistsAndWritable, 1);
+        }
+    } else {
+        setStringParam(function, value);
+    }
+
+    callParamCallbacks();
+    return status;
+}
+
+
 asynStatus RBD9103::writeInt32(asynUser* pasynUser, epicsInt32 value){
     int function = pasynUser->reason;
     asynStatus status = asynSuccess;
@@ -430,6 +590,7 @@ asynStatus RBD9103::writeInt32(asynUser* pasynUser, epicsInt32 value){
             string samplingResp = writeReadCmd("&S");
             parseSampling(samplingResp);
             setIntegerParam(RBD9103_Sample, 0);
+            return asynSuccess;
         } else {
             int samplingRateMs;
             getIntegerParam(RBD9103_SamplingRate, &samplingRateMs);
@@ -437,10 +598,34 @@ asynStatus RBD9103::writeInt32(asynUser* pasynUser, epicsInt32 value){
                 ERR_ARGS("Invalid sampling rate: %d ms. Must be between 20 and 9999", samplingRateMs);
                 status = asynError;
             } else {
-                setIntegerParam(RBD9103_SampleCounter, 0);
                 this->setSamplingRate(samplingRateMs);
                 this->startSampling();
             }
+        }
+    } else if (function == RBD9103_Record) {
+        if (value == 0) {
+            this->closeCSV();
+        } else {
+            int filePathExists;
+            getIntegerParam(RBD9103_DirExistsAndWritable, &filePathExists);
+            if(filePathExists == 1){
+                char filePath[256], fileName[256];
+                getStringParam(RBD9103_FileName, 256, fileName);
+                getStringParam(RBD9103_DirectoryPath, 256, filePath);
+                char fullFilePath[512];
+                snprintf(fullFilePath, sizeof(fullFilePath), "%s/%s", filePath, fileName);
+                openCSV(fullFilePath);
+            } else {
+                ERR("Cannot start recording without a valid file path!");
+                status = asynError;
+            }
+        }
+    } else if (function == RBD9103_AvgOnlyStable || function == RBD9103_AvgCurrentUnits) {
+        int sampling;
+        getIntegerParam(RBD9103_Sample, &sampling);
+        if(sampling == 1){
+            ERR("Cannot change averaging units or whether to only average stable samples while sampling is active!");
+            status = asynError;
         }
     } else if (function == RBD9103_SamplingRate){
         if(value == 0) {
@@ -533,7 +718,15 @@ RBD9103::RBD9103(const char* portName, const char* serialPortName)
     createParam(RBD9103_DeviceIDString, asynParamOctet, &this->RBD9103_DeviceID);
     createParam(RBD9103_FwVersionString, asynParamOctet, &this->RBD9103_FwVersion);
     createParam(RBD9103_BuildDateString, asynParamOctet, &this->RBD9103_BuildDate);
+    createParam(RBD9103_AvgCurrentString, asynParamFloat64, &this->RBD9103_AvgCurrent);
+    createParam(RBD9103_AvgCurrentUnitsString, asynParamInt32, &this->RBD9103_AvgCurrentUnits);
+    createParam(RBD9103_AvgOnlyStableString, asynParamInt32, &this->RBD9103_AvgOnlyStable);
+    createParam(RBD9103_SumCurrentString, asynParamFloat64, &this->RBD9103_SumCurrent);
     createParam(RBD9103_DeviceDescString, asynParamOctet, &this->RBD9103_DeviceDesc);
+    createParam(RBD9103_DirectoryPathString, asynParamOctet, &this->RBD9103_DirectoryPath);
+    createParam(RBD9103_FileNameString, asynParamOctet, &this->RBD9103_FileName);
+    createParam(RBD9103_RecordString, asynParamInt32, &this->RBD9103_Record);
+    createParam(RBD9103_DirExistsAndWritableString, asynParamInt32, &this->RBD9103_DirExistsAndWritable);
     createParam(RBD9103_ManufacturerString, asynParamOctet, &this->RBD9103_Manufacturer);
 
     setStringParam(this->RBD9103_DrvVersion, RBD9103_DRIVER_VERSION);
@@ -558,6 +751,11 @@ RBD9103::~RBD9103(){
 
     // Make sure we clean up our sampling thread here.
     LOG("Shutting down RBD 9103 IOC...");
+
+    if(this->csvFile != NULL){
+        this->closeCSV();
+    }
+
     if(this->samplingThreadId != NULL){
         this->stopSampling();
     }

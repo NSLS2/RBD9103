@@ -1,29 +1,45 @@
-record(waveform, "$(P)$(R)RecordingFilePath"){
+record(waveform, "$(P)$(R)DirectoryPath"){
     field(DTYP, "asynOctetWrite")
-    field(OUT, "@asyn($(PORT),$(ADDR),0)RBD_RECORD_FILE_PATH")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_DIRECTORY_PATH")
     field(FTVL, "CHAR")
+    field(PINI, "YES")
     field(NELM, "256")
 }
 
-record(waveform, "$(P)$(R)RecordingFilePath_RBV") {
+record(waveform, "$(P)$(R)DirectoryPath_RBV") {
     field(DTYP, "asynOctetRead")
-    field(INP, "@asyn($(PORT),$(ADDR),0)RBD_RECORD_FILE_PATH")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_DIRECTORY_PATH")
     field(FTVL, "CHAR")
     field(NELM, "256")
 }
 
-record(bi, "$(P)$(R)FilePathExists_RBV") {
+record(bi, "$(P)$(R)DirPathExists_RBV") {
     field(DTYP, "asynInt32")
-    field(INP, "@asyn($(PORT),$(ADDR),0)RBD_FILE_PATH_EXISTS")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_DIR_EXISTS_WRITABLE")
     field(ZNAM, "False")
     field(ONAM, "True")
     field(SCAN, "I/O Intr")
     field(VAL, "0")
 }
 
+record(waveform, "$(P)$(R)Filename"){
+    field(DTYP, "asynOctetWrite")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_FILENAME")
+    field(FTVL, "CHAR")
+    field(NELM, "256")
+    field(PINI, "YES")
+}
+
+record(waveform, "$(P)$(R)Filename_RBV") {
+    field(DTYP, "asynOctetRead")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_FILENAME")
+    field(FTVL, "CHAR")
+    field(NELM, "256")
+}
+
 record(bo, "$(P)$(R)Record"){
     field(DTYP, "asynInt32")
-    field(OUT, "@asyn($(PORT),$(ADDR),0)RBD_RECORD")
+    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_RECORD")
     field(ZNAM, "Idle")
     field(ONAM, "Recording")
     field(PINI, "YES")
@@ -32,7 +48,7 @@ record(bo, "$(P)$(R)Record"){
 
 record(bi, "$(P)$(R)Record_RBV"){
     field(DTYP, "asynInt32")
-    field(INP, "@asyn($(PORT),$(ADDR),0)RBD_RECORD")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_RECORD")
     field(ZNAM, "Idle")
     field(ONAM, "Recording")
     field(SCAN, "I/O Intr")
