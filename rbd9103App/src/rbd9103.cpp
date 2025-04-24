@@ -13,6 +13,7 @@
 #include <epicsTime.h>
 #include <iocsh.h>
 
+#include <inttypes.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -148,7 +149,7 @@ void RBD9103::getDeviceStatus(){
     // Send &Q to get device status
     pasynOctetSyncIO->write(this->pasynUserSerialPort, "&Q", 2, 1, &nwrite);
 
-    LOG("Reading device status:");
+    DEBUG("Reading device status:");
     bool readDeviceID = false;
     char ret[64];
     while(!readDeviceID){
@@ -156,7 +157,7 @@ void RBD9103::getDeviceStatus(){
         // Device status is several lines long, so we need to 
         pasynOctetSyncIO->read(this->pasynUserSerialPort, ret, sizeof(ret), 1, &nread, &eomReason);
         string statusLine = string(ret);
-        LOG(statusLine.c_str());
+        DEBUG(statusLine.c_str());
         if(statusLine.rfind("Firmware", 0) == 0) {
             const char* fwVersion = splitRespOnDelim(statusLine, ": ").c_str();
             setStringParam(this->RBD9103_FwVersion, fwVersion);
@@ -169,9 +170,6 @@ void RBD9103::getDeviceStatus(){
         } else if(statusLine.rfind("I, sample Interval", 0) == 0) {
             const char* sampleInterval = splitRespOnDelim(statusLine, "=").c_str();
             setIntegerParam(this->RBD9103_SamplingRateActual, atoi(sampleInterval));
-        } else if(statusLine.rfind("L, Chart Log Update Interval", 0) == 0) {
-            const char*chartLogUpdateInterval = splitRespOnDelim(statusLine, "=").c_str();
-            //setStringParam(this->RBD9103_ChartLogUpdateInterval, );
         } else if(statusLine.rfind("B, BIAS", 0) == 0) {
             const char* bias = splitRespOnDelim(statusLine, "=").c_str();
             if(strcmp(bias, "ON") == 0){
@@ -187,7 +185,11 @@ void RBD9103::getDeviceStatus(){
             this->setIntegerParam(this->RBD9103_NumDigits, atoi(formatLen));
         } else if(statusLine.rfind("CA, Autocal", 0) == 0) {
             const char* autoCal = splitRespOnDelim(statusLine, "=").c_str();
-            //setStringParam(this->RBD9103_AutoCal, );
+            if(strcmp(autoCal, "ON") == 0){
+                setIntegerParam(this->RBD9103_AutoCal, RBD_ON);
+            } else if(strcmp(autoCal, "OFF") == 0){
+                setIntegerParam(this->RBD9103_AutoCal, RBD_OFF);
+            }
         } else if(statusLine.rfind("G, AutoGrounding", 0) == 0) {
             const char* autoGrounding = splitRespOnDelim(statusLine, "=").c_str();
             if(strcmp(autoGrounding, "DISABLED") == 0){
@@ -320,7 +322,7 @@ static vector<string> split(string input, const char* delim) {
 void RBD9103::appendCSV(double current, double avgCurrent, RBDRange_t range, RBDUnits_t currentUnits, int stable){
     const char* functionName = "appendCSV";
     if(this->csvFile != NULL){
-        fprintf(this->csvFile, "%llu,%d,%s,%f,%f,%s\n", getTimestampMS(), stable, getStrFromRangeSetting(range), current, avgCurrent, getStrFromUnits(currentUnits));
+        fprintf(this->csvFile, "%" PRIu64 ",%d,%s,%f,%f,%s\n", getTimestampMS(), stable, getStrFromRangeSetting(range), current, avgCurrent, getStrFromUnits(currentUnits));
         fflush(this->csvFile);
     } else {
         ERR("CSV file not open!");
@@ -358,23 +360,24 @@ void RBD9103::closeCSV(){
 void RBD9103::parseSampling(string rawSampling){
     const char* functionName = "parseSampling";
 
-    RBDUnits_t avgCurrentUnits, currentUnits;
-    RBDOnOff_t avgOnlyStable;
-    RBDRange_t range;
-    double avgCurrent, sumCurrent;
+    RBDUnits_t avgCurrentUnits, currentUnits = RBD_UNT_NA;
+    RBDOnOff_t avgOnlyStable = RBD_ON;
+    RBDRange_t range = RBD_RNG_2N;
+    double avgCurrent, sumCurrent = 0;
     getDoubleParam(RBD9103_SumCurrent, &sumCurrent);
     getIntegerParam(RBD9103_AvgOnlyStable, (int*) &avgOnlyStable);
-    getIntegerParam(RBD9103_AvgCurrentUnits, (int*) &currentUnits);
+    getIntegerParam(RBD9103_AvgCurrentUnits, (int*) &avgCurrentUnits);
+
+    DEBUG_ARGS("Parsing sampling response: %s", rawSampling.c_str());
+
+    int stable = 0;
+    int inRange = 0;
+    double current = 0;
 
     // Sampling response format:
     // &S=,Range=002nA,+0.0008,nA
-    LOG_ARGS("Parsing sampling response: %s", rawSampling.c_str());
-
-    int stable, inRange;
-    double current;
-
     vector<string> components = split(rawSampling, ",");
-    for(int i = 0; i < components.size(); i++){
+    for(size_t i = 0; i < components.size(); i++){
         switch(i) {
             case 0:
                 switch(components[i][2]) {
@@ -383,15 +386,12 @@ void RBD9103::parseSampling(string rawSampling){
                         inRange = RBD_RANGE_STATE_OK;
                         break;
                     case '>':
-                        stable = 0;
                         inRange = RBD_RANGE_STATE_OVER;
                         break;
                     case '<':
-                        stable = 0;
                         inRange = RBD_RANGE_STATE_UNDER;
                         break;
                     default:
-                        stable = 0;
                         inRange = RBD_RANGE_STATE_OK;
                         break;
                 }
@@ -474,9 +474,6 @@ void RBD9103::samplingThread(){
     int eomReason;
     int numSamples, sampleCounter;
     RBDSamplingMode_t samplingMode;
-    RBDUnits_t avgCurrentUnits;
-    double sumCurrent;
-    asynStatus status;
 
     setDoubleParam(RBD9103_SumCurrent, 0.0);
     setDoubleParam(RBD9103_AvgCurrent, 0.0);
@@ -543,6 +540,7 @@ void RBD9103::stopSampling(){
 void RBD9103::setSamplingRate(int rate){
     const char* functionName = "setSamplingRate";
     char cmd[32];
+    DEBUG_ARGS("Setting sampling rate to %d ms", rate);
     snprintf(cmd, sizeof(cmd), "&I%04d", rate);
     writeReadCmd(cmd);
     this->getDeviceStatus();
@@ -562,7 +560,7 @@ asynStatus RBD9103::writeOctet(asynUser* pasynUser, const char* value, size_t nC
     if (function == RBD9103_DirectoryPath && nChars > 0) {
         // Check if the directory exists and is writable
         struct stat info;
-        LOG_ARGS("Checking if path %s exists and is writable", value);
+        DEBUG_ARGS("Checking if path %s exists and is writable", value);
 
         if (stat(value, &info) != 0 || !(info.st_mode & S_IFDIR)) {
             ERR_ARGS("Path %s does not exist or is not a directory", value);
@@ -590,7 +588,7 @@ asynStatus RBD9103::writeInt32(asynUser* pasynUser, epicsInt32 value){
     int function = pasynUser->reason;
     asynStatus status = asynSuccess;
     static const char* functionName = "writeInt32";
-    char cmd[32], ret[64];
+    char cmd[32];
     if (function == RBD9103_Sample) {
         RBDSamplingMode_t samplingMode;
         getIntegerParam(RBD9103_SamplingMode, (int*) &samplingMode);
@@ -660,7 +658,7 @@ asynStatus RBD9103::writeInt32(asynUser* pasynUser, epicsInt32 value){
             ERR("Cannot set offset null when range is set to AutoR");
             status = asynError;
         } else if (value == 1) {
-            snprintf(cmd, sizeof(cmd), "&N", value);
+            snprintf(cmd, sizeof(cmd), "&N");
         } else {
             // Per manual, to clear offset null state, just re-apply range setting.
             snprintf(cmd, sizeof(cmd), "&R%d", range);
@@ -668,7 +666,7 @@ asynStatus RBD9103::writeInt32(asynUser* pasynUser, epicsInt32 value){
     }
 
     if(strlen(cmd) > 0) {
-        LOG_ARGS("Sending command: %s", cmd);
+        DEBUG_ARGS("Sending command: %s", cmd);
         writeReadCmd(cmd);
         getDeviceStatus();
     }
@@ -677,7 +675,7 @@ asynStatus RBD9103::writeInt32(asynUser* pasynUser, epicsInt32 value){
         ERR_ARGS("ERROR status=%d, function=%d, value=%d", status, function, value);
     } else {
         setIntegerParam(function, value);
-        LOG_ARGS("function=%d value=%f", function, value);
+        DEBUG_ARGS("function=%d value=%d", function, value);
     }
 
     callParamCallbacks();
@@ -688,7 +686,6 @@ asynStatus RBD9103::writeInt32(asynUser* pasynUser, epicsInt32 value){
 RBD9103::RBD9103(const char* portName, const char* serialPortName)
     : asynPortDriver(
           portName, 1, /* maxAddr */
-          (int)NUM_RBD9103_PARAMS,
           asynInt32Mask | asynFloat64Mask | asynFloat64ArrayMask | asynDrvUserMask |
               asynOctetMask, /* Interface mask */
           asynInt32Mask | asynFloat64Mask | asynFloat64ArrayMask |
@@ -700,6 +697,8 @@ RBD9103::RBD9103(const char* portName, const char* serialPortName)
 
 {
     const char* functionName = "RBD9103";
+
+    LOG("Initializing RBD9103 driver...");
 
     // Connect this driver to the low level serial port, so we can access it later.
     pasynOctetSyncIO->connect(serialPortName, 0, &this->pasynUserSerialPort, NULL);
@@ -716,6 +715,7 @@ RBD9103::RBD9103(const char* portName, const char* serialPortName)
     createParam(RBD9103_NumSamplesString, asynParamInt32, &this->RBD9103_NumSamples);
     createParam(RBD9103_SampleCounterString, asynParamInt32, &this->RBD9103_SampleCounter);
     createParam(RBD9103_StateString, asynParamOctet, &this->RBD9103_State);
+    createParam(RBD9103_AutoCalString, asynParamInt32, &this->RBD9103_AutoCal);
     createParam(RBD9103_CurrentUnitsString, asynParamInt32, &this->RBD9103_CurrentUnits);
     createParam(RBD9103_CurrentString, asynParamFloat64, &this->RBD9103_Current);
     createParam(RBD9103_OffsetNullString, asynParamInt32, &this->RBD9103_OffsetNull);
@@ -724,7 +724,6 @@ RBD9103::RBD9103(const char* portName, const char* serialPortName)
     createParam(RBD9103_RangeActualString, asynParamInt32, &this->RBD9103_RangeActual);
     createParam(RBD9103_BiasString, asynParamInt32, &this->RBD9103_Bias);
     createParam(RBD9103_FilterString, asynParamInt32, &this->RBD9103_Filter);
-    createParam(RBD9103_AutoCalString, asynParamInt32, &this->RBD9103_AutoCal);
     createParam(RBD9103_AutoGroundingString, asynParamInt32, &this->RBD9103_AutoGrounding);
     createParam(RBD9103_DeviceIDString, asynParamOctet, &this->RBD9103_DeviceID);
     createParam(RBD9103_FwVersionString, asynParamOctet, &this->RBD9103_FwVersion);
