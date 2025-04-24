@@ -11,6 +11,7 @@ record(waveform, "$(P)$(R)DirectoryPath_RBV") {
     field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_DIRECTORY_PATH")
     field(FTVL, "CHAR")
     field(NELM, "256")
+    field(SCAN, "I/O Intr")
 }
 
 record(bi, "$(P)$(R)DirPathExists_RBV") {
@@ -35,6 +36,7 @@ record(waveform, "$(P)$(R)Filename_RBV") {
     field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_FILENAME")
     field(FTVL, "CHAR")
     field(NELM, "256")
+    field(SCAN, "I/O Intr")
 }
 
 record(bo, "$(P)$(R)Record"){
