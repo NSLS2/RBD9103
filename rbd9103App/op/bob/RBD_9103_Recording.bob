@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Saved on 2025-04-18 15:55:32 by jwlodek-->
+<display version="2.0.0">
+  <name>Recording</name>
+  <width>680</width>
+  <height>140</height>
+  <background_color>
+    <color name="Text" red="0" green="0" blue="0">
+    </color>
+  </background_color>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_1</name>
+    <y>10</y>
+    <width>680</width>
+    <height>130</height>
+    <line_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </line_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_35</name>
+    <text>Recording</text>
+    <x>30</x>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_36</name>
+    <text>Recording Save Dir</text>
+    <x>20</x>
+    <y>50</y>
+    <width>130</width>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <horizontal_alignment>2</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_37</name>
+    <text>Dir Exists</text>
+    <x>570</x>
+    <y>20</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_38</name>
+    <text>Filename</text>
+    <x>50</x>
+    <y>110</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <horizontal_alignment>2</horizontal_alignment>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>LED_8</name>
+    <pv_name>$(P)$(R)DirPathExists_RBV</pv_name>
+    <x>640</x>
+    <y>20</y>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_2</name>
+    <pv_name>$(P)$(R)Filename</pv_name>
+    <x>160</x>
+    <y>110</y>
+    <width>340</width>
+    <background_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <format>6</format>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry_3</name>
+    <pv_name>$(P)$(R)DirectoryPath</pv_name>
+    <x>160</x>
+    <y>50</y>
+    <width>340</width>
+    <background_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+    <format>6</format>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_21</name>
+    <pv_name>$(P)$(R)DirectoryPath_RBV</pv_name>
+    <x>160</x>
+    <y>20</y>
+    <width>340</width>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <format>6</format>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_22</name>
+    <pv_name>$(P)$(R)Filename_RBV</pv_name>
+    <x>160</x>
+    <y>80</y>
+    <width>340</width>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <format>6</format>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_6</name>
+    <actions>
+      <action type="write_pv">
+        <pv_name>$(P)$(R)Record</pv_name>
+        <value>1</value>
+        <description>Start Recording</description>
+      </action>
+    </actions>
+    <text>Start Recording</text>
+    <x>520</x>
+    <y>50</y>
+    <width>140</width>
+    <height>40</height>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_7</name>
+    <actions>
+      <action type="write_pv">
+        <pv_name>$(P)$(R)Record</pv_name>
+        <value>0</value>
+        <description>Stop Recording</description>
+      </action>
+    </actions>
+    <text>Stop Recording</text>
+    <x>520</x>
+    <y>90</y>
+    <width>140</width>
+    <height>40</height>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+</display>

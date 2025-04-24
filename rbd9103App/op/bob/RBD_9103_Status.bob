@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Saved on 2025-04-24 11:59:51 by jwlodek-->
+<display version="2.0.0">
+  <name>Status</name>
+  <width>210</width>
+  <height>500</height>
+  <background_color>
+    <color name="Text" red="0" green="0" blue="0">
+    </color>
+  </background_color>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_5</name>
+    <y>310</y>
+    <width>210</width>
+    <height>190</height>
+    <line_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </line_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_3</name>
+    <text>Status</text>
+    <x>30</x>
+    <y>300</y>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_15</name>
+    <text>Connected</text>
+    <x>70</x>
+    <y>330</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update</name>
+    <pv_name>$(P)$(R)Build_RBV</pv_name>
+    <x>110</x>
+    <y>210</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>Action Button_4</name>
+    <actions>
+      <action type="open_display">
+        <file>asyn/asynRecord.bob</file>
+        <macros>
+          <R>$(R)AsynIO</R>
+        </macros>
+        <target>tab</target>
+        <description>Console</description>
+      </action>
+    </actions>
+    <text>Console</text>
+    <x>30</x>
+    <y>430</y>
+    <width>140</width>
+    <height>50</height>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <tooltip>$(actions)</tooltip>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_2</name>
+    <pv_name>$(P)$(R)Model_RBV</pv_name>
+    <x>110</x>
+    <y>150</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_21</name>
+    <text>Model</text>
+    <x>10</x>
+    <y>150</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_22</name>
+    <text>Build</text>
+    <x>10</x>
+    <y>210</y>
+    <width>86</width>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="picture" version="2.0.0">
+    <name>Picture</name>
+    <file>logo.png</file>
+    <x>20</x>
+    <width>156</width>
+    <height>110</height>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>LED_5</name>
+    <pv_name>$(P)$(R)AsynIO.PCNCT</pv_name>
+    <x>30</x>
+    <y>330</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_24</name>
+    <text>Manufacturer</text>
+    <x>10</x>
+    <y>130</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_7</name>
+    <pv_name>$(P)$(R)Manufacturer_RBV</pv_name>
+    <x>110</x>
+    <y>130</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_25</name>
+    <text>Device Desc</text>
+    <x>10</x>
+    <y>170</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_8</name>
+    <pv_name>$(P)$(R)DeviceDesc_RBV</pv_name>
+    <x>110</x>
+    <y>170</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_26</name>
+    <text>Fw Version</text>
+    <x>10</x>
+    <y>190</y>
+    <width>86</width>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_9</name>
+    <pv_name>$(P)$(R)FwVersion_RBV</pv_name>
+    <x>110</x>
+    <y>190</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_27</name>
+    <text>Driver Ver.</text>
+    <x>10</x>
+    <y>230</y>
+    <width>86</width>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_10</name>
+    <pv_name>$(P)$(R)DrvVersion_RBV</pv_name>
+    <x>110</x>
+    <y>230</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_28</name>
+    <text>Device ID</text>
+    <x>10</x>
+    <y>250</y>
+    <width>86</width>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_11</name>
+    <pv_name>$(P)$(R)DeviceID_RBV</pv_name>
+    <x>110</x>
+    <y>250</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="polyline" version="2.0.0">
+    <name>Polyline</name>
+    <x>170</x>
+    <y>50</y>
+    <width>1</width>
+    <height>1</height>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>LED_7</name>
+    <pv_name>$(P)$(R)Record_RBV</pv_name>
+    <x>30</x>
+    <y>390</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_39</name>
+    <text>Recording</text>
+    <x>70</x>
+    <y>390</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_14</name>
+    <text>Sampling</text>
+    <x>70</x>
+    <y>360</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>LED</name>
+    <pv_name>$(P)$(R)Sample_RBV</pv_name>
+    <x>30</x>
+    <y>360</y>
+  </widget>
+</display>

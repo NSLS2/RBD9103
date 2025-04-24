@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Saved on 2025-04-24 11:19:52 by jwlodek-->
+<display version="2.0.0">
+  <name>Current</name>
+  <width>680</width>
+  <height>210</height>
+  <background_color>
+    <color name="Text" red="0" green="0" blue="0">
+    </color>
+  </background_color>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_4</name>
+    <y>10</y>
+    <width>680</width>
+    <height>200</height>
+    <line_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </line_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_2</name>
+    <text>Current</text>
+    <x>30</x>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_9</name>
+    <text>Bias</text>
+    <x>570</x>
+    <y>130</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_10</name>
+    <text>Input Gnd.</text>
+    <x>570</x>
+    <y>100</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_11</name>
+    <text>Offset Null</text>
+    <x>570</x>
+    <y>70</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_12</name>
+    <text>Stable</text>
+    <x>570</x>
+    <y>40</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_1</name>
+    <pv_name>$(P)$(R)Current_RBV</pv_name>
+    <x>60</x>
+    <y>20</y>
+    <width>350</width>
+    <height>100</height>
+    <font>
+      <font family="Liberation Sans" style="BOLD" size="72.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color red="255" green="204" blue="102">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <precision>5</precision>
+    <horizontal_alignment>2</horizontal_alignment>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>LED_1</name>
+    <pv_name>$(P)$(R)Stable_RBV</pv_name>
+    <x>540</x>
+    <y>40</y>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>LED_2</name>
+    <pv_name>$(P)$(R)OffsetNull_RBV</pv_name>
+    <x>540</x>
+    <y>70</y>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>LED_3</name>
+    <pv_name>$(P)$(R)InputGnd_RBV</pv_name>
+    <x>540</x>
+    <y>100</y>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>LED_4</name>
+    <pv_name>$(P)$(R)Bias_RBV</pv_name>
+    <x>540</x>
+    <y>130</y>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_13</name>
+    <pv_name>$(P)$(R)InRange_RBV</pv_name>
+    <x>614</x>
+    <y>160</y>
+    <width>46</width>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <rules>
+      <rule name="OutOfRangeState" prop_id="foreground_color" out_exp="false">
+        <exp bool_exp="pv0 == 0">
+          <value>
+            <color name="OK" red="0" green="255" blue="0">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0 != 0">
+          <value>
+            <color name="MAJOR" red="255" green="0" blue="0">
+            </color>
+          </value>
+        </exp>
+        <pv_name>$(P)$(R)InRange_RBV</pv_name>
+      </rule>
+    </rules>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_30</name>
+    <text>In Range:</text>
+    <x>540</x>
+    <y>160</y>
+    <width>70</width>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_18</name>
+    <pv_name>$(P)$(R)CurrentUnits_RBV</pv_name>
+    <x>430</x>
+    <y>30</y>
+    <width>90</width>
+    <height>70</height>
+    <font>
+      <font family="Liberation Sans" style="BOLD" size="60.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color red="255" green="204" blue="102">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <precision>5</precision>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_15</name>
+    <pv_name>$(P)$(R)AvgCurrent_RBV</pv_name>
+    <x>60</x>
+    <y>100</y>
+    <width>350</width>
+    <height>100</height>
+    <font>
+      <font family="Liberation Sans" style="BOLD" size="72.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color red="255" green="204" blue="102">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <precision>5</precision>
+    <horizontal_alignment>2</horizontal_alignment>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_19</name>
+    <pv_name>$(P)$(R)AvgCurrentUnits_RBV</pv_name>
+    <x>430</x>
+    <y>110</y>
+    <width>90</width>
+    <height>70</height>
+    <font>
+      <font family="Liberation Sans" style="BOLD" size="60.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color red="255" green="204" blue="102">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <precision>5</precision>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle</name>
+    <x>20</x>
+    <y>100</y>
+    <width>500</width>
+    <height>1</height>
+    <line_color>
+      <color name="White" red="255" green="255" blue="255">
+      </color>
+    </line_color>
+    <background_color>
+      <color name="White" red="255" green="255" blue="255">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_21</name>
+    <x>350</x>
+    <y>330</y>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_22</name>
+    <text>Live</text>
+    <x>30</x>
+    <y>70</y>
+    <width>30</width>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_23</name>
+    <text>Avg</text>
+    <x>30</x>
+    <y>110</y>
+    <width>30</width>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+</display>

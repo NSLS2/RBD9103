@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Saved on 2025-04-18 16:27:12 by jwlodek-->
+<display version="2.0.0">
+  <name>RBD 9103 $(N) - Full</name>
+  <macros>
+    <P>DEV:</P>
+    <R>RBD9103:</R>
+    <PORT>RBD_TTY</PORT>
+  </macros>
+  <width>1380</width>
+  <height>800</height>
+  <background_color>
+    <color name="Text" red="0" green="0" blue="0">
+    </color>
+  </background_color>
+  <widget type="label" version="2.0.0">
+    <name>Label_23</name>
+    <text>$(P)$(R)</text>
+    <width>1370</width>
+    <height>30</height>
+    <font>
+      <font name="Header 1" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded Display_2</name>
+    <file>RBD_9103_Status.bob</file>
+    <x>1160</x>
+    <y>50</y>
+    <width>210</width>
+    <height>500</height>
+    <resize>2</resize>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded Display_4</name>
+    <file>RBD_9103_Settings.bob</file>
+    <x>10</x>
+    <y>430</y>
+    <width>680</width>
+    <height>170</height>
+    <resize>2</resize>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded Display_5</name>
+    <file>RBD_9103_Control.bob</file>
+    <x>10</x>
+    <y>620</y>
+    <width>680</width>
+    <height>120</height>
+    <resize>2</resize>
+  </widget>
+  <widget type="embedded" version="2.0.0">
+    <name>Embedded Display_6</name>
+    <file>RBD_9103_Recording.bob</file>
+    <x>700</x>
+    <y>620</y>
+    <width>680</width>
+    <height>140</height>
+    <resize>2</resize>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_4</name>
+    <x>700</x>
+    <y>410</y>
+    <width>450</width>
+    <height>200</height>
+    <line_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </line_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_24</name>
+    <text>Current</text>
+    <x>710</x>
+    <y>400</y>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_25</name>
+    <text>Bias</text>
+    <x>1040</x>
+    <y>550</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_26</name>
+    <text>Input Gnd.</text>
+    <x>1040</x>
+    <y>520</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_27</name>
+    <text>Offset Null</text>
+    <x>1040</x>
+    <y>490</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_28</name>
+    <text>Stable</text>
+    <x>1040</x>
+    <y>460</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_29</name>
+    <text>Sampling</text>
+    <x>1040</x>
+    <y>430</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_1</name>
+    <pv_name>$(P)$(R)Current_RBV</pv_name>
+    <x>780</x>
+    <y>430</y>
+    <width>150</width>
+    <height>60</height>
+    <font>
+      <font family="Liberation Sans" style="BOLD" size="20.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color red="255" green="204" blue="102">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <precision>5</precision>
+    <horizontal_alignment>2</horizontal_alignment>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>LED</name>
+    <pv_name>$(P)$(R)Sample_RBV</pv_name>
+    <x>1010</x>
+    <y>430</y>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>LED_1</name>
+    <pv_name>$(P)$(R)Stable_RBV</pv_name>
+    <x>1010</x>
+    <y>460</y>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>LED_2</name>
+    <pv_name>$(P)$(R)OffsetNull_RBV</pv_name>
+    <x>1010</x>
+    <y>490</y>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>LED_3</name>
+    <pv_name>$(P)$(R)InputGnd_RBV</pv_name>
+    <x>1010</x>
+    <y>520</y>
+  </widget>
+  <widget type="led" version="2.0.0">
+    <name>LED_4</name>
+    <pv_name>$(P)$(R)Bias_RBV</pv_name>
+    <x>1010</x>
+    <y>550</y>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_13</name>
+    <pv_name>$(P)$(R)InRange_RBV</pv_name>
+    <x>1074</x>
+    <y>580</y>
+    <width>66</width>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <rules>
+      <rule name="OutOfRangeState" prop_id="foreground_color" out_exp="false">
+        <exp bool_exp="pv0 == 0">
+          <value>
+            <color name="OK" red="0" green="255" blue="0">
+            </color>
+          </value>
+        </exp>
+        <exp bool_exp="pv0 != 0">
+          <value>
+            <color name="MAJOR" red="255" green="0" blue="0">
+            </color>
+          </value>
+        </exp>
+        <pv_name>$(P)$(R)InRange_RBV</pv_name>
+      </rule>
+    </rules>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_30</name>
+    <text>In Range:</text>
+    <x>1000</x>
+    <y>580</y>
+    <width>70</width>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_18</name>
+    <pv_name>$(P)$(R)CurrentUnits_RBV</pv_name>
+    <x>940</x>
+    <y>430</y>
+    <width>40</width>
+    <height>70</height>
+    <font>
+      <font family="Liberation Sans" style="BOLD" size="20.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color red="255" green="204" blue="102">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <precision>5</precision>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_19</name>
+    <pv_name>$(P)$(R)AvgCurrent_RBV</pv_name>
+    <x>780</x>
+    <y>510</y>
+    <width>150</width>
+    <height>70</height>
+    <font>
+      <font family="Liberation Sans" style="BOLD" size="20.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color red="255" green="204" blue="102">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <precision>5</precision>
+    <horizontal_alignment>2</horizontal_alignment>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_20</name>
+    <pv_name>$(P)$(R)AvgCurrentUnits_RBV</pv_name>
+    <x>940</x>
+    <y>510</y>
+    <width>40</width>
+    <height>70</height>
+    <font>
+      <font family="Liberation Sans" style="BOLD" size="20.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color red="255" green="204" blue="102">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <precision>5</precision>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_5</name>
+    <x>710</x>
+    <y>500</y>
+    <width>280</width>
+    <height>1</height>
+    <line_color>
+      <color name="White" red="255" green="255" blue="255">
+      </color>
+    </line_color>
+    <background_color>
+      <color name="White" red="255" green="255" blue="255">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_31</name>
+    <text>Live</text>
+    <x>720</x>
+    <y>470</y>
+    <width>30</width>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_32</name>
+    <text>Avg</text>
+    <x>720</x>
+    <y>510</y>
+    <width>30</width>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="stripchart" version="2.1.0">
+    <name>Strip Chart</name>
+    <x>80</x>
+    <y>40</y>
+    <width>510</width>
+    <height>340</height>
+    <foreground_color>
+      <color name="White" red="255" green="255" blue="255">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Foreground" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <y_axes>
+      <y_axis>
+        <title>Current</title>
+        <autoscale>true</autoscale>
+        <log_scale>false</log_scale>
+        <minimum>0.0</minimum>
+        <maximum>100.0</maximum>
+        <show_grid>false</show_grid>
+        <visible>true</visible>
+        <color>
+          <color name="White" red="255" green="255" blue="255">
+          </color>
+        </color>
+      </y_axis>
+    </y_axes>
+    <traces>
+      <trace>
+        <name>$(traces[0].y_pv)</name>
+        <y_pv>$(P)$(R)Current_RBV</y_pv>
+        <axis>0</axis>
+        <trace_type>1</trace_type>
+        <color>
+          <color red="255" green="204" blue="102">
+          </color>
+        </color>
+        <line_width>2</line_width>
+        <point_type>0</point_type>
+        <point_size>10</point_size>
+        <visible>true</visible>
+      </trace>
+    </traces>
+  </widget>
+  <widget type="stripchart" version="2.1.0">
+    <name>Strip Chart_1</name>
+    <x>630</x>
+    <y>40</y>
+    <width>510</width>
+    <height>340</height>
+    <foreground_color>
+      <color name="White" red="255" green="255" blue="255">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Foreground" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <y_axes>
+      <y_axis>
+        <title>Avg Current</title>
+        <autoscale>true</autoscale>
+        <log_scale>false</log_scale>
+        <minimum>0.0</minimum>
+        <maximum>100.0</maximum>
+        <show_grid>false</show_grid>
+        <visible>true</visible>
+        <color>
+          <color name="White" red="255" green="255" blue="255">
+          </color>
+        </color>
+      </y_axis>
+    </y_axes>
+    <traces>
+      <trace>
+        <name>$(traces[0].y_pv)</name>
+        <y_pv>$(P)$(R)AvgCurrent_RBV</y_pv>
+        <axis>0</axis>
+        <trace_type>1</trace_type>
+        <color>
+          <color red="255" green="204" blue="102">
+          </color>
+        </color>
+        <line_width>2</line_width>
+        <point_type>0</point_type>
+        <point_size>10</point_size>
+        <visible>true</visible>
+      </trace>
+    </traces>
+  </widget>
+</display>

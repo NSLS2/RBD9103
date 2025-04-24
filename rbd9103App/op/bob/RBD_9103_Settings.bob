@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Saved on 2025-04-18 16:16:16 by jwlodek-->
+<display version="2.0.0">
+  <name>Settings</name>
+  <width>680</width>
+  <height>170</height>
+  <background_color>
+    <color name="Text" red="0" green="0" blue="0">
+    </color>
+  </background_color>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle</name>
+    <y>10</y>
+    <width>680</width>
+    <height>160</height>
+    <line_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </line_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="radio" version="2.0.0">
+    <name>Radio Button</name>
+    <pv_name>$(P)$(R)OffsetNull</pv_name>
+    <x>380</x>
+    <y>60</y>
+    <width>50</width>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <items>
+      <item>Off</item>
+      <item>On</item>
+    </items>
+  </widget>
+  <widget type="radio" version="2.0.0">
+    <name>Radio Button_1</name>
+    <pv_name>$(P)$(R)InputGnd</pv_name>
+    <x>470</x>
+    <y>60</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <items>
+      <item>Normal</item>
+      <item>Grounded</item>
+    </items>
+  </widget>
+  <widget type="radio" version="2.0.0">
+    <name>Radio Button_2</name>
+    <pv_name>$(P)$(R)Bias</pv_name>
+    <x>604</x>
+    <y>60</y>
+    <width>60</width>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <items>
+      <item>Off</item>
+      <item>On</item>
+    </items>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label</name>
+    <text>Settings</text>
+    <x>30</x>
+    <font>
+      <font name="Header 3" family="Liberation Sans" style="BOLD" size="16.0">
+      </font>
+    </font>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+    <transparent>false</transparent>
+    <horizontal_alignment>1</horizontal_alignment>
+    <vertical_alignment>1</vertical_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_6</name>
+    <text>Range Ctrl</text>
+    <x>10</x>
+    <y>40</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_8</name>
+    <text>Smpl Rate Ctrl</text>
+    <x>10</x>
+    <y>100</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_13</name>
+    <text>Offset Null:</text>
+    <x>370</x>
+    <y>30</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_17</name>
+    <text>Bias:</text>
+    <x>604</x>
+    <y>30</y>
+    <width>60</width>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_18</name>
+    <text>Input:</text>
+    <x>480</x>
+    <y>30</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="textentry" version="3.0.0">
+    <name>Text Entry</name>
+    <pv_name>$(P)$(R)SamplingRate</pv_name>
+    <x>120</x>
+    <y>100</y>
+    <background_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_16</name>
+    <text>Filter</text>
+    <x>410</x>
+    <y>140</y>
+    <width>40</width>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="combo" version="2.0.0">
+    <name>Combo Box</name>
+    <pv_name>$(P)$(R)Range</pv_name>
+    <x>120</x>
+    <y>30</y>
+  </widget>
+  <widget type="combo" version="2.0.0">
+    <name>Combo Box_1</name>
+    <pv_name>$(P)$(R)Filter</pv_name>
+    <x>460</x>
+    <y>130</y>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_5</name>
+    <pv_name>$(P)$(R)Range_RBV</pv_name>
+    <x>230</x>
+    <y>40</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_6</name>
+    <pv_name>$(P)$(R)Filter_RBV</pv_name>
+    <x>570</x>
+    <y>140</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_12</name>
+    <pv_name>$(P)$(R)SamplingRate_RBV</pv_name>
+    <x>230</x>
+    <y>100</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_15</name>
+    <pv_name>$(P)$(R)RangeActual_RBV</pv_name>
+    <x>120</x>
+    <y>70</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="textupdate" version="2.0.0">
+    <name>Text Update_19</name>
+    <pv_name>$(P)$(R)SamplingRateActual_RBV</pv_name>
+    <x>120</x>
+    <y>130</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+    <background_color>
+      <color name="Text" red="0" green="0" blue="0">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_33</name>
+    <text>Range Actual</text>
+    <x>10</x>
+    <y>70</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Label_34</name>
+    <text>Curr Smpl Rate</text>
+    <x>10</x>
+    <y>130</y>
+    <foreground_color>
+      <color name="Background" red="240" green="240" blue="240">
+      </color>
+    </foreground_color>
+  </widget>
+  <widget type="rectangle" version="2.0.0">
+    <name>Rectangle_1</name>
+    <x>350</x>
+    <y>20</y>
+    <width>1</width>
+    <height>140</height>
+    <line_color>
+      <color name="White" red="255" green="255" blue="255">
+      </color>
+    </line_color>
+    <background_color>
+      <color name="White" red="255" green="255" blue="255">
+      </color>
+    </background_color>
+  </widget>
+</display>
