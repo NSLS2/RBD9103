@@ -203,15 +203,6 @@ record(bi, "$(P)$(R)OffsetNull_RBV"){
     field(SCAN, "I/O Intr")
 }
 
-record(bi, "$(P)$(R)Error_RBV"){
-    field(DTYP, "asynInt32")
-    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_ERROR")
-    field(ZNAM, "OK")
-    field(ONAM, "ERROR")
-    field(VAL, "0")
-    field(SCAN, "I/O Intr")
-}
-
 # record(bo, "$(P)$(R)HighSpeed"){
 #     field(DTYP, "asynInt32")
 #     field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_HIGH_SPEED")

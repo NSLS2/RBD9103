@@ -32,15 +32,11 @@ asynOctetSetInputEos("$(SERIAL_PORT)", 0, "\r\n")
 
 
 RBD9103Config("RBD", "$(SERIAL_PORT)")
-asynSetTraceMask("$(PORT)", 0, 0x29)
-
-
-# Load any additional specified databases.
+# Uncomment to enable debug logging.
+#asynSetTraceMask("$(PORT)", 0, 0x9)
 
 ## Load record instances
 dbLoadTemplate("$(RBD_9103)/db/rbd9103.substitutions")
-
-dbLoadRecords"$(DEVIOCSTATS)/db/iocAdminSoft.db", "IOC=$(PREFIX)")
 
 iocInit()
 

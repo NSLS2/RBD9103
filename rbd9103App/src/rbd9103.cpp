@@ -41,19 +41,11 @@ using namespace std;
               functionName, __VA_ARGS__);
 
 // Log message formatters
-#define LOG(msg) \
+#define DEBUG(msg) \
     asynPrint(pasynUserSelf, ASYN_TRACEIO_DRIVER, "%s::%s: %s\n", driverName, functionName, msg)
 
-#define LOG_ARGS(fmt, ...)                                                                       \
-    asynPrint(pasynUserSelf, ASYN_TRACEIO_DRIVER, "%s::%s: " fmt "\n", driverName, functionName, \
-              __VA_ARGS__);
-
-// Log message formatters
-#define DEBUG(msg) \
-    asynPrint(pasynUserSelf, ASYN_TRACE_FLOW, "%s::%s: %s\n", driverName, functionName, msg)
-
 #define DEBUG_ARGS(fmt, ...)                                                                       \
-    asynPrint(pasynUserSelf, ASYN_TRACE_FLOW, "%s::%s: " fmt "\n", driverName, functionName, \
+    asynPrint(pasynUserSelf, ASYN_TRACEIO_DRIVER, "%s::%s: " fmt "\n", driverName, functionName, \
               __VA_ARGS__);
 
 /**
@@ -211,7 +203,6 @@ void RBD9103::getDeviceStatus(){
 }
 
 void RBD9103::getModelNumber(){
-    const char* functionName = "getModelNumber";
     pasynOctetSyncIO->flush(this->pasynUserSerialPort);
 
     // Lock the mutex for the driver so we can guarantee that any reads are going to be coming from
@@ -222,7 +213,7 @@ void RBD9103::getModelNumber(){
 
     const char* model = splitRespOnDelim(modelStr, "=").c_str();
     setStringParam(RBD9103_Model, model);
-    LOG_ARGS("Connected to ammeter: %s", model);
+    printf("Connected to ammeter: %s\n", model);
 
     this->unlock();
     callParamCallbacks();
@@ -340,17 +331,16 @@ void RBD9103::openCSV(const char* filename){
     } else {
         fprintf(this->csvFile, "Timestamp,Stable,Range,Current,AvgCurrent,Units\n");
         fflush(this->csvFile);
+        printf("Opened CSV file: %s\n", filename);
     }
-    LOG_ARGS("Opened CSV file: %s", filename);
 }
 
 void RBD9103::closeCSV(){
-    const char* functionName = "closeCSV";
     if(this->csvFile != NULL){
         fclose(this->csvFile);
+        printf("Closed CSV file\n");
     }
     this->csvFile = NULL;
-    LOG("Closed CSV file");
 }
 
 
@@ -698,7 +688,8 @@ RBD9103::RBD9103(const char* portName, const char* serialPortName)
 {
     const char* functionName = "RBD9103";
 
-    LOG("Initializing RBD9103 driver...");
+    printf("Initializing RBD9103 driver...\n");
+    DEBUG_ARGS("Driver version: %s", RBD9103_DRIVER_VERSION);
 
     // Connect this driver to the low level serial port, so we can access it later.
     pasynOctetSyncIO->connect(serialPortName, 0, &this->pasynUserSerialPort, NULL);
@@ -748,7 +739,6 @@ RBD9103::RBD9103(const char* portName, const char* serialPortName)
     setStringParam(this->RBD9103_Manufacturer, "RBD Instruments");
 
     this->getDeviceStatus();
-    setIntegerParam(this->RBD9103_OffsetNull, 0);
 
     // Make sure we flush any parameter settings, after fetching status.
     callParamCallbacks();
@@ -757,10 +747,8 @@ RBD9103::RBD9103(const char* portName, const char* serialPortName)
 }
 
 RBD9103::~RBD9103(){
-    const char* functionName = "~RBD9103";
-
     // Make sure we clean up our sampling thread here.
-    LOG("Shutting down RBD 9103 IOC...");
+    printf("Shutting down RBD 9103 IOC...\n");
 
     if(this->csvFile != NULL){
         this->closeCSV();
@@ -769,7 +757,7 @@ RBD9103::~RBD9103(){
     if(this->samplingThreadId != NULL){
         this->stopSampling();
     }
-    LOG("Done");
+    printf("Done.\n");
 }
 
 

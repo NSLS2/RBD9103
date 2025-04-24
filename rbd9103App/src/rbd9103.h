@@ -1,11 +1,6 @@
 #ifndef RBD9103_H
 #define RBD9103_H
 
-#define RBD9103_VERSION      0
-#define RBD9103_REVISION     0
-#define RBD9103_MODIFICATION 0
-
-
 #include <vector>
 #include <epicsTime.h>
 #include <epicsThread.h>
@@ -21,7 +16,7 @@
 
 #include <asynPortDriver.h>
 
-#define RBD9103_DRIVER_VERSION "0.0.1"
+#define RBD9103_DRIVER_VERSION "1.0.1"
 
 static const char* driverName = "RBD9103";
 
