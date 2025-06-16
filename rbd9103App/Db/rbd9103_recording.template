@@ -56,3 +56,21 @@ record(bi, "$(P)$(R)Record_RBV"){
     field(SCAN, "I/O Intr")
     field(VAL, "0")
 }
+
+record(bo, "$(P)$(R)OutputFileFormat"){
+    field(DTYP, "asynInt32")
+    field(OUT, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_OUTPUT_FILE_FORMAT")
+    field(ZNAM, "CSV")
+    field(ONAM, "HDF5")
+    field(PINI, "YES")
+    field(VAL, "0")
+}
+
+record(bi, "$(P)$(R)OutputFileFormat_RBV"){
+    field(DTYP, "asynInt32")
+    field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_OUTPUT_FILE_FORMAT")
+    field(ZNAM, "CSV")
+    field(ONAM, "HDF5")
+    field(SCAN, "I/O Intr")
+    field(VAL, "0")
+}

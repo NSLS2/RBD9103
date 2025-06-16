@@ -415,6 +415,7 @@ record(ai, "$(P)$(R)AvgCurrent_RBV") {
     field(DTYP, "asynFloat64")
     field(INP, "@asyn($(PORT),$(ADDR=0),$(TIMEOUT=1))RBD_AVG_CURRENT")
     field(SCAN, "I/O Intr")
+    field(PREC, "5")
     field(VAL, "0")
 }
 
