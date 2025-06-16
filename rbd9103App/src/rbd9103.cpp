@@ -158,13 +158,9 @@ void RBD9103::getDeviceStatus(){
             setStringParam(this->RBD9103_BuildDate, buildDate);
         } else if(statusLine.rfind("R, Range", 0) == 0) {
             string range = splitRespOnDelim(statusLine, "=");
-            RBDRange_t rangeSetting;
-            if(range != "AutoR") {
-                // If range is not set to AutoR, update range actual.
-                // Otherwise, range actual will be set in feedback loop.
-                setIntegerParam(this->RBD9103_RangeActual, getRangeSettingFromStr(range));
-
-            }
+            // If range is not set to AutoR, update range actual.
+            // Otherwise, range actual will be set in sampling loop.
+            if(range != "AutoR") setIntegerParam(this->RBD9103_RangeActual, getRangeSettingFromStr(range));
             setIntegerParam(this->RBD9103_Range, getRangeSettingFromStr(range));
         } else if(statusLine.rfind("I, sample Interval", 0) == 0) {
             const char* sampleInterval = splitRespOnDelim(statusLine, "=").c_str();
