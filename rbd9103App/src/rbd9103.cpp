@@ -158,6 +158,13 @@ void RBD9103::getDeviceStatus(){
             setStringParam(this->RBD9103_BuildDate, buildDate);
         } else if(statusLine.rfind("R, Range", 0) == 0) {
             string range = splitRespOnDelim(statusLine, "=");
+            RBDRange_t rangeSetting;
+            if(range != "AutoR") {
+                // If range is not set to AutoR, update range actual.
+                // Otherwise, range actual will be set in feedback loop.
+                setIntegerParam(this->RBD9103_RangeActual, getRangeSettingFromStr(range));
+
+            }
             setIntegerParam(this->RBD9103_Range, getRangeSettingFromStr(range));
         } else if(statusLine.rfind("I, sample Interval", 0) == 0) {
             const char* sampleInterval = splitRespOnDelim(statusLine, "=").c_str();
@@ -393,7 +400,16 @@ void RBD9103::parseSampling(string rawSampling){
             {
                 string rangeStr = components[i].substr(components[i].find("=") + 1, components[i].length());
                 range = getRangeSettingFromStr(rangeStr);
-                setIntegerParam(this->RBD9103_Range, range);
+
+                // Only update range readback if it is not set to Auto.
+                RBDRange_t rangeSetting;
+                getIntegerParam(RBD9103_Range, (int*) &rangeSetting);
+                if(rangeSetting != RBD_RNG_AUTO ){
+                    setIntegerParam(this->RBD9103_Range, range);
+                }
+
+                // Always update range actual, even if it is AutoR.
+                setIntegerParam(this->RBD9103_RangeActual, range);
                 break;
             }
             case 2:
@@ -496,6 +512,7 @@ void RBD9103::samplingThread(){
                         setIntegerParam(RBD9103_Sample, RBD_OFF);
                         setIntegerParam(RBD9103_Record, RBD_OFF);
                         this->closeCSV();
+                        this->alive = false;
                     }
                 }
             }
