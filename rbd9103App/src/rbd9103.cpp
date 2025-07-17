@@ -2,8 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <unistd.h>
 #include <cmath>
+#include <sys/stat.h>
 
 // EPICS includes
 #include <asynOctetSyncIO.h>
@@ -15,8 +16,6 @@
 #include <epicsTime.h>
 #include <inttypes.h>
 #include <iocsh.h>
-#include <sys/stat.h>
-#include <unistd.h>
 
 #include "rbd9103.h"
 
