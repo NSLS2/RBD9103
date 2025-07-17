@@ -1,20 +1,19 @@
 #ifndef RBD9103_H
 #define RBD9103_H
 
-#include <vector>
-#include <epicsTime.h>
-#include <epicsThread.h>
-#include <epicsEvent.h>
-#include <epicsMutex.h>
-#include <epicsString.h>
-#include <epicsStdio.h>
-#include <epicsMutex.h>
-#include <cantProceed.h>
-#include <epicsExit.h>
-#include <iocsh.h>
-#include <epicsExport.h>
-
 #include <asynPortDriver.h>
+#include <cantProceed.h>
+#include <epicsEvent.h>
+#include <epicsExit.h>
+#include <epicsExport.h>
+#include <epicsMutex.h>
+#include <epicsStdio.h>
+#include <epicsString.h>
+#include <epicsThread.h>
+#include <epicsTime.h>
+#include <iocsh.h>
+
+#include <vector>
 
 #define RBD9103_DRIVER_VERSION "1.0.1"
 
@@ -105,17 +104,18 @@ typedef enum RBD_RANGE_STATE {
 
 using namespace std;
 
-class RBD9103 : public asynPortDriver
-{
-public:
+class RBD9103 : public asynPortDriver {
+   public:
     RBD9103(const char* portName, const char* serialPortName);
     ~RBD9103();
     string writeReadCmd(const char* cmd);
     virtual asynStatus writeInt32(asynUser* pasynUser, epicsInt32 value);
-    virtual asynStatus writeOctet(asynUser* pasynUser, const char* value, size_t nChars, size_t* nActual);
+    virtual asynStatus writeOctet(asynUser* pasynUser, const char* value, size_t nChars,
+                                  size_t* nActual);
     void samplingThread();
-protected:
-private:
+
+   protected:
+   private:
     asynUser* pasynUserSerialPort;
     bool alive;
     epicsThreadId samplingThreadId;
@@ -126,7 +126,8 @@ private:
     string splitRespOnDelim(string resp, const char* delim);
     void parseSampling(string rawSampling);
     void setSamplingRate(int rate);
-    void appendCSV(double current, double avgCurrent, RBDRange_t range, RBDUnits_t currentUnits, int stable);
+    void appendCSV(double current, double avgCurrent, RBDRange_t range, RBDUnits_t currentUnits,
+                   int stable);
     RBDRange_t getRangeSettingFromStr(string rangeStr);
     const char* getStrFromRangeSetting(RBDRange_t range);
     RBDUnits_t getUnitsFromStr(string unitsStr);
@@ -172,11 +173,10 @@ private:
     int RBD9103_DirExistsAndWritable;
     int RBD9103_Manufacturer;
 
-    #define FIRST_RBD9103_PARAM RBD9103_Model
-    #define LAST_RBD9103_PARAM RBD9103_Manufacturer
+#define FIRST_RBD9103_PARAM RBD9103_Model
+#define LAST_RBD9103_PARAM RBD9103_Manufacturer
 
-    #define NUM_RBD9103_PARAMS ((int)(&LAST_RBD9103_PARAM - &FIRST_RBD9103_PARAM + 1))
-
+#define NUM_RBD9103_PARAMS ((int) (&LAST_RBD9103_PARAM - &FIRST_RBD9103_PARAM + 1))
 };
 
 #endif
