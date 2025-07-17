@@ -1,10 +1,6 @@
 #!../../bin/linux-x86_64/rbd9103App
 
-#- You may have to change default to something else
-#- everywhere it appears in this file
-
 < /epics/common/xf31id1-ioc2-netsetup.cmd
-
 < envPaths
 
 epicsEnvSet("ENGINEER", "J. Wlodek")
