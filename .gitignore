@@ -7,3 +7,4 @@ bin/
 dbd/
 db/
 include/
+*.local

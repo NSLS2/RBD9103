@@ -2,9 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <cmath>
 #include <sys/stat.h>
+#include <unistd.h>
+
+#include <cmath>
 
 // EPICS includes
 #include <asynOctetSyncIO.h>
