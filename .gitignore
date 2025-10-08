@@ -8,3 +8,4 @@ dbd/
 db/
 include/
 *.local
+.iocsh_history
